@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Ops - Landing</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+        }
+        .tab-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .tab-btn.active { background: white; color: #2c3e50; }
+        .content { flex: 1; }
+        iframe {
+            width: 100%;
+            height: calc(100vh - 140px);
+            border: 0;
+            display: none;
+        }
+        iframe.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bar Operations</h1>
+            <div class="tabs">
+                <a class="tab-btn" href="?page=employee" title="Employee CRM">Employee CRM</a>
+                <a class="tab-btn" href="?page=shift" title="Shift Tracker">Shift Tracker</a>
+            </div>
+        </div>
+        
+    </div>
+
+    
+</body>
+</html>
+

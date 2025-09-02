@@ -1,5 +1,5 @@
 function doGet(e) {
-  var page = (e && e.parameter && e.parameter.page) ? e.parameter.page : 'index';
+  var page = (e && e.parameter && e.parameter.page) ? e.parameter.page : 'landing';
   return HtmlService.createTemplateFromFile(page)
     .evaluate()
     .setTitle('Bar Operations');
