@@ -16,6 +16,8 @@ const PHOTOS_FOLDER_NAME = 'Bar_Employee_Photos';
 const SKILLS_SHEET_NAME = 'Bartender_Skills';
 const SKILLS_CONFIG_SHEET_NAME = 'Bartender_Skill_Config';
 const SHIFTS_SHEET_NAME = 'Shifts';
+const LOCATIONS_SHEET_NAME = 'Locations_Config';
+const COWORKERS_SHEET_NAME = 'Shift_Coworkers';
 const HEADER_ROW = 1;
 const DATA_START_ROW = 2;
 
@@ -317,7 +319,7 @@ function doGet(e) {
     console.log(`[DOGET] 🔍 Available parameters:`, JSON.stringify(e?.parameter || {}));
     
     // Validate page parameter
-    const validPages = ['landing', 'employee', 'shift'];
+    const validPages = ['landing', 'employee', 'shift', 'coworkers'];
     if (!validPages.includes(page)) {
       console.log(`[DOGET] ⚠️ Invalid page '${page}', redirecting to landing`);
       // Use relative redirect to avoid hardcoding script ID
@@ -333,6 +335,7 @@ function doGet(e) {
     let pageTitle = 'Bar Operations';
     if (page === 'employee') pageTitle = 'Bar Employee CRM';
     if (page === 'shift') pageTitle = 'Bartending Shift Tracker';
+    if (page === 'coworkers') pageTitle = 'Shift Coworkers';
     
     console.log(`[DOGET] 📝 Page title: ${pageTitle}`);
     console.log(`[DOGET] 🔄 Creating HTML template for: ${page}`);
@@ -1901,9 +1904,177 @@ function getPageUrls() {
     landing: baseUrl,
     employee: baseUrl + '?page=employee',
     shift: baseUrl + '?page=shift',
+    coworkers: baseUrl + '?page=coworkers',
     currentUrl: baseUrl
   };
   
   console.log('[NAV] Generated page URLs:', JSON.stringify(urls));
   return urls;
+}
+
+/**
+ * =============================
+ * Locations Management
+ * =============================
+ */
+
+function getLocationsSheet() {
+  const ss = getAppSpreadsheet();
+  let sheet = ss.getSheetByName(LOCATIONS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(LOCATIONS_SHEET_NAME);
+    sheet.getRange(1, 1, 1, 1).setValues([['Location']]);
+    const headerRange = sheet.getRange(1, 1, 1, 1);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground('#34495e');
+    headerRange.setFontColor('white');
+    
+    // Add some default locations
+    const defaultLocations = [
+      ['Main Bar'],
+      ['Patio Bar'],
+      ['VIP Lounge'],
+      ['Downstairs Bar'],
+      ['Rooftop Bar']
+    ];
+    sheet.getRange(2, 1, defaultLocations.length, 1).setValues(defaultLocations);
+  }
+  return sheet;
+}
+
+function getLocationsList() {
+  try {
+    const sheet = getLocationsSheet();
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return [];
+    
+    const data = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    const locations = data
+      .filter(row => row[0] && row[0].toString().trim())
+      .map(row => row[0].toString().trim());
+    
+    return locations;
+  } catch (error) {
+    Logger.log('Error getting locations: ' + error.toString());
+    return [];
+  }
+}
+
+/**
+ * =============================
+ * Shift Coworkers Management
+ * =============================
+ */
+
+function getCoworkersSheet() {
+  const ss = getAppSpreadsheet();
+  let sheet = ss.getSheetByName(COWORKERS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(COWORKERS_SHEET_NAME);
+    sheet.getRange(1, 1, 1, 8).setValues([[
+      'ID', 'Shift ID', 'Employee ID', 'Name', 'Position', 'Start Time', 'End Time', 'Location'
+    ]]);
+    const headerRange = sheet.getRange(1, 1, 1, 8);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground('#34495e');
+    headerRange.setFontColor('white');
+  }
+  return sheet;
+}
+
+function getCoworkersByShiftId(shiftId) {
+  try {
+    const sheet = getCoworkersSheet();
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return [];
+    
+    const data = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
+    const coworkers = [];
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      if (String(row[1]) === String(shiftId)) {
+        coworkers.push({
+          id: String(row[0] || ''),
+          shiftId: String(row[1] || ''),
+          employeeId: String(row[2] || ''),
+          name: String(row[3] || ''),
+          position: String(row[4] || ''),
+          startTime: String(row[5] || ''),
+          endTime: String(row[6] || ''),
+          location: String(row[7] || '')
+        });
+      }
+    }
+    
+    return coworkers;
+  } catch (error) {
+    Logger.log('Error getting coworkers: ' + error.toString());
+    return [];
+  }
+}
+
+function saveCoworkers(shiftId, coworkers) {
+  try {
+    const sheet = getCoworkersSheet();
+    
+    // First, delete existing coworkers for this shift
+    const data = sheet.getDataRange().getValues();
+    for (let i = data.length - 1; i >= 1; i--) {
+      if (String(data[i][1]) === String(shiftId)) {
+        sheet.deleteRow(i + 1);
+      }
+    }
+    
+    // Then add the new coworkers
+    for (const coworker of coworkers) {
+      const rowData = [
+        coworker.id || generateId(),
+        shiftId,
+        coworker.employeeId || '',
+        coworker.name || '',
+        coworker.position || '',
+        coworker.startTime || '',
+        coworker.endTime || '',
+        coworker.location || ''
+      ];
+      sheet.appendRow(rowData);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    Logger.log('Error saving coworkers: ' + error.toString());
+    throw new Error('Failed to save coworkers: ' + error.message);
+  }
+}
+
+// Get the current user (me) from employees where "Is Me" is true
+function getCurrentUser() {
+  try {
+    const sheet = getSheet();
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return null;
+    
+    const data = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+    const isMeIndex = HEADERS.indexOf('Is Me');
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      if (row[isMeIndex] === true || row[isMeIndex] === 'TRUE' || row[isMeIndex] === 'Yes') {
+        return {
+          id: String(row[0] || ''),
+          firstName: String(row[1] || ''),
+          lastName: String(row[2] || ''),
+          name: `${row[1] || ''} ${row[2] || ''}`.trim(),
+          position: String(row[5] || ''),
+          employeeId: String(row[0] || '')
+        };
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    Logger.log('Error getting current user: ' + error.toString());
+    return null;
+  }
 }

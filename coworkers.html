@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shift Coworkers</title>
+    <style>
+        /* Design System - Matching shift.html */
+        * { 
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        :root {
+            /* Colors */
+            --purple-gradient-start: #667eea;
+            --purple-gradient-end: #764ba2;
+            --gray-gradient-start: #2c3e50;
+            --gray-gradient-end: #34495e;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+            --amber-500: #f59e0b;
+            --amber-600: #d97706;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--purple-gradient-start) 0%, var(--purple-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 1.25rem;
+            color: var(--gray-900);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--gray-gradient-start) 0%, var(--gray-gradient-end) 100%);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .shift-info {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .shift-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .shift-info-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .shift-info-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .editable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .editable-table th {
+            background: var(--gray-100);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .editable-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .editable-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .editable-table input,
+        .editable-table select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .editable-table input:focus,
+        .editable-table select:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .btn-primary {
+            background: var(--blue-500);
+            color: white;
+            border-color: var(--blue-500);
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-600);
+            border-color: var(--blue-600);
+        }
+
+        .btn-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+            box-shadow: var(--shadow-md);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .autocomplete-item:hover {
+            background: var(--gray-100);
+        }
+
+        .autocomplete-item.selected {
+            background: var(--blue-50);
+            color: var(--blue-700);
+        }
+
+        .readonly-row {
+            background: var(--blue-50);
+        }
+
+        .readonly-row input,
+        .readonly-row select {
+            background: var(--blue-50);
+            cursor: default;
+        }
+
+        .add-row-btn {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px dashed var(--gray-300);
+            border-radius: 0.375rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.15s;
+        }
+
+        .add-row-btn:hover {
+            border-color: var(--blue-500);
+            color: var(--blue-600);
+            background: var(--blue-50);
+        }
+
+        .delete-btn {
+            padding: 0.25rem 0.5rem;
+            background: white;
+            border: 1px solid var(--red-300);
+            color: var(--red-600);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .delete-btn:hover {
+            background: var(--red-50);
+            border-color: var(--red-400);
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            border: 1px solid #fecaca;
+            font-size: 0.875rem;
+        }
+
+        .success-message {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            border: 1px solid #a7f3d0;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>
+                    <svg class="btn-icon" style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    Shift Coworkers
+                </h1>
+                <p>Manage team members for this shift</p>
+            </div>
+            <button class="btn" onclick="goBack()">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Shift
+            </button>
+        </div>
+        
+        <div class="content">
+            <div id="errorContainer"></div>
+            <div id="successContainer"></div>
+            
+            <!-- Shift Information -->
+            <div class="shift-info" id="shiftInfo">
+                <div class="shift-info-item">
+                    <span class="shift-info-label">Date</span>
+                    <span class="shift-info-value" id="shiftDate">-</span>
+                </div>
+                <div class="shift-info-item">
+                    <span class="shift-info-label">Start Time</span>
+                    <input type="time" class="shift-info-value" id="shiftStartTime" onchange="updateMainShiftTime('startTime', this.value)">
+                </div>
+                <div class="shift-info-item">
+                    <span class="shift-info-label">End Time</span>
+                    <input type="time" class="shift-info-value" id="shiftEndTime" onchange="updateMainShiftTime('endTime', this.value)">
+                </div>
+                <div class="shift-info-item">
+                    <span class="shift-info-label">Location</span>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" class="shift-info-value" id="shiftLocation" onchange="updateMainShiftLocation(this.value)">
+                        <div class="autocomplete-dropdown" id="shiftLocationDropdown"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Coworkers Table -->
+            <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Team Members</h2>
+            
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Name</th>
+                        <th style="width: 20%;">Position</th>
+                        <th style="width: 15%;">Start Time</th>
+                        <th style="width: 15%;">End Time</th>
+                        <th style="width: 20%;">Location</th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="coworkersTableBody">
+                    <!-- Rows will be added dynamically -->
+                </tbody>
+            </table>
+            
+            <button class="add-row-btn" onclick="addCoworkerRow()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Coworker
+            </button>
+            
+            <div class="action-buttons">
+                <button class="btn" onclick="goBack()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCoworkers()">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Save Coworkers
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let shiftData = null;
+        let employees = [];
+        let positions = [];
+        let locations = [];
+        let currentUser = null;
+        let coworkers = [];
+        let isGoogleAppsScript = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            isGoogleAppsScript = (typeof google !== 'undefined' && google.script && google.script.run);
+            
+            // Listen for messages from parent window
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'shiftData') {
+                    shiftData = event.data.data;
+                    displayShiftInfo();
+                    loadCoworkers();
+                }
+            });
+            
+            // Get shift data from sessionStorage or URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            const shiftId = urlParams.get('shiftId');
+            
+            if (shiftId) {
+                loadShiftData(shiftId);
+            } else {
+                const storedShift = sessionStorage.getItem('currentShift');
+                if (storedShift) {
+                    shiftData = JSON.parse(storedShift);
+                    displayShiftInfo();
+                    loadCoworkers();
+                }
+            }
+            
+            loadEmployees();
+            loadPositions();
+            loadLocations();
+            loadCurrentUser();
+        });
+
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = '<div class="error-message">' + message + '</div>';
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const container = document.getElementById('successContainer');
+            container.innerHTML = '<div class="success-message">' + message + '</div>';
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        function loadShiftData(shiftId) {
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function(shifts) {
+                        const shift = shifts.find(s => s.id === shiftId);
+                        if (shift) {
+                            shiftData = shift;
+                            displayShiftInfo();
+                            loadCoworkers();
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        showError('Error loading shift: ' + error);
+                    })
+                    .getAllShifts();
+            }
+        }
+
+        function displayShiftInfo() {
+            if (!shiftData) return;
+            
+            document.getElementById('shiftDate').textContent = formatDate(shiftData.date);
+            document.getElementById('shiftStartTime').value = shiftData.startTime || '';
+            document.getElementById('shiftEndTime').value = shiftData.endTime || '';
+            document.getElementById('shiftLocation').value = shiftData.location || '';
+            
+            // Setup location autocomplete for shift info
+            setupLocationAutocomplete('shiftLocation', 'shiftLocationDropdown');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options);
+        }
+
+        function loadEmployees() {
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function(data) {
+                        employees = data.employees || [];
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error loading employees:', error);
+                    })
+                    .getAllEmployees();
+            } else {
+                // Mock data
+                employees = [
+                    { id: '1', firstName: 'John', lastName: 'Doe', position: 'Bartender' },
+                    { id: '2', firstName: 'Jane', lastName: 'Smith', position: 'Server' }
+                ];
+            }
+        }
+
+        function loadPositions() {
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function(data) {
+                        positions = data.positions || [];
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error loading positions:', error);
+                    })
+                    .getPositionsList();
+            } else {
+                // Mock data
+                positions = [
+                    { name: 'Bartender', icon: '🍸' },
+                    { name: 'Server', icon: '🍽️' },
+                    { name: 'Manager', icon: '👔' }
+                ];
+            }
+        }
+
+        function loadLocations() {
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function(data) {
+                        locations = data || [];
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error loading locations:', error);
+                    })
+                    .getLocationsList();
+            } else {
+                // Mock data
+                locations = ['Main Bar', 'Patio Bar', 'VIP Lounge'];
+            }
+        }
+
+        function loadCurrentUser() {
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function(user) {
+                        currentUser = user;
+                        if (user && coworkers.length === 0) {
+                            // Add current user as first coworker
+                            addCurrentUserRow();
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error loading current user:', error);
+                    })
+                    .getCurrentUser();
+            }
+        }
+
+        function loadCoworkers() {
+            if (!shiftData || !shiftData.id) return;
+            
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function(data) {
+                        coworkers = data || [];
+                        renderCoworkersTable();
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error loading coworkers:', error);
+                        // Add current user row if no coworkers loaded
+                        if (currentUser) {
+                            addCurrentUserRow();
+                        }
+                    })
+                    .getCoworkersByShiftId(shiftData.id);
+            } else {
+                // Add current user row for testing
+                if (currentUser) {
+                    addCurrentUserRow();
+                }
+            }
+        }
+
+        function addCurrentUserRow() {
+            if (!currentUser) return;
+            
+            const tbody = document.getElementById('coworkersTableBody');
+            const row = tbody.insertRow(0);
+            row.className = 'readonly-row';
+            row.dataset.isMe = 'true';
+            
+            row.innerHTML = `
+                <td>
+                    <input type="text" value="${currentUser.name}" readonly data-field="name">
+                </td>
+                <td>
+                    <input type="text" value="${currentUser.position}" readonly data-field="position">
+                </td>
+                <td>
+                    <input type="time" value="${shiftData?.startTime || ''}" data-field="startTime" onchange="syncWithShiftTime('startTime', this.value)">
+                </td>
+                <td>
+                    <input type="time" value="${shiftData?.endTime || ''}" data-field="endTime" onchange="syncWithShiftTime('endTime', this.value)">
+                </td>
+                <td>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" value="${shiftData?.location || ''}" data-field="location" onchange="syncWithShiftLocation(this.value)">
+                        <div class="autocomplete-dropdown"></div>
+                    </div>
+                </td>
+                <td></td>
+            `;
+            
+            // Setup autocomplete for location
+            const locationInput = row.querySelector('input[data-field="location"]');
+            const locationDropdown = row.querySelector('.autocomplete-dropdown');
+            setupLocationAutocomplete(locationInput, locationDropdown);
+        }
+
+        function renderCoworkersTable() {
+            const tbody = document.getElementById('coworkersTableBody');
+            tbody.innerHTML = '';
+            
+            // Add current user first if exists
+            if (currentUser) {
+                addCurrentUserRow();
+            }
+            
+            // Add other coworkers
+            coworkers.forEach(coworker => {
+                if (coworker.employeeId !== currentUser?.id) {
+                    addCoworkerRow(coworker);
+                }
+            });
+        }
+
+        function addCoworkerRow(coworker = null) {
+            const tbody = document.getElementById('coworkersTableBody');
+            const row = tbody.insertRow();
+            
+            const nameId = 'name-' + Date.now();
+            const positionId = 'position-' + Date.now();
+            const locationId = 'location-' + Date.now();
+            
+            row.innerHTML = `
+                <td>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="${nameId}" value="${coworker?.name || ''}" data-field="name" placeholder="Type name...">
+                        <div class="autocomplete-dropdown"></div>
+                    </div>
+                </td>
+                <td>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="${positionId}" value="${coworker?.position || ''}" data-field="position" placeholder="Position">
+                        <div class="autocomplete-dropdown"></div>
+                    </div>
+                </td>
+                <td>
+                    <input type="time" value="${coworker?.startTime || shiftData?.startTime || ''}" data-field="startTime">
+                </td>
+                <td>
+                    <input type="time" value="${coworker?.endTime || shiftData?.endTime || ''}" data-field="endTime">
+                </td>
+                <td>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="${locationId}" value="${coworker?.location || shiftData?.location || ''}" data-field="location" placeholder="Location">
+                        <div class="autocomplete-dropdown"></div>
+                    </div>
+                </td>
+                <td>
+                    <button class="delete-btn" onclick="deleteCoworkerRow(this)">×</button>
+                </td>
+            `;
+            
+            // Setup autocompletes
+            setupEmployeeAutocomplete(row.querySelector(`#${nameId}`), row);
+            setupPositionAutocomplete(row.querySelector(`#${positionId}`));
+            setupLocationAutocomplete(row.querySelector(`#${locationId}`), row.querySelector(`#${locationId}`).nextElementSibling);
+        }
+
+        function deleteCoworkerRow(btn) {
+            btn.closest('tr').remove();
+        }
+
+        function setupEmployeeAutocomplete(input, row) {
+            const dropdown = input.nextElementSibling;
+            let selectedIndex = -1;
+            
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                dropdown.innerHTML = '';
+                selectedIndex = -1;
+                
+                if (value.length === 0) {
+                    dropdown.classList.remove('active');
+                    return;
+                }
+                
+                const matches = employees.filter(emp => {
+                    const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+                    return fullName.includes(value);
+                });
+                
+                if (matches.length === 0) {
+                    dropdown.classList.remove('active');
+                    return;
+                }
+                
+                dropdown.classList.add('active');
+                matches.forEach((emp, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = `${emp.firstName} ${emp.lastName}`;
+                    item.addEventListener('click', function() {
+                        input.value = `${emp.firstName} ${emp.lastName}`;
+                        // Auto-fill position
+                        const positionInput = row.querySelector('input[data-field="position"]');
+                        if (positionInput && emp.position) {
+                            positionInput.value = emp.position;
+                        }
+                        dropdown.classList.remove('active');
+                    });
+                    dropdown.appendChild(item);
+                });
+            });
+            
+            setupAutocompleteKeyboard(input, dropdown);
+        }
+
+        function setupPositionAutocomplete(input) {
+            const dropdown = input.nextElementSibling;
+            let selectedIndex = -1;
+            
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                dropdown.innerHTML = '';
+                selectedIndex = -1;
+                
+                const matches = positions.filter(pos => 
+                    pos.name.toLowerCase().includes(value)
+                );
+                
+                if (matches.length === 0 || value.length === 0) {
+                    dropdown.classList.remove('active');
+                    return;
+                }
+                
+                dropdown.classList.add('active');
+                matches.forEach((pos, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = pos.icon + ' ' + pos.name;
+                    item.addEventListener('click', function() {
+                        input.value = pos.name;
+                        dropdown.classList.remove('active');
+                    });
+                    dropdown.appendChild(item);
+                });
+            });
+            
+            setupAutocompleteKeyboard(input, dropdown);
+        }
+
+        function setupLocationAutocomplete(input, dropdown) {
+            if (!input || !dropdown) return;
+            
+            let selectedIndex = -1;
+            
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                dropdown.innerHTML = '';
+                selectedIndex = -1;
+                
+                const matches = locations.filter(loc => 
+                    loc.toLowerCase().includes(value)
+                );
+                
+                if (matches.length === 0 || value.length === 0) {
+                    dropdown.classList.remove('active');
+                    return;
+                }
+                
+                dropdown.classList.add('active');
+                matches.forEach((loc, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = loc;
+                    item.addEventListener('click', function() {
+                        input.value = loc;
+                        dropdown.classList.remove('active');
+                    });
+                    dropdown.appendChild(item);
+                });
+            });
+            
+            setupAutocompleteKeyboard(input, dropdown);
+        }
+
+        function setupAutocompleteKeyboard(input, dropdown) {
+            input.addEventListener('keydown', function(e) {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                let selectedIndex = Array.from(items).findIndex(item => item.classList.contains('selected'));
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateAutocompleteSelection(items, selectedIndex);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateAutocompleteSelection(items, selectedIndex);
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    items[selectedIndex].click();
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.remove('active');
+                }
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+
+        function updateAutocompleteSelection(items, index) {
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // Two-way sync functions
+        function syncWithShiftTime(field, value) {
+            if (field === 'startTime') {
+                document.getElementById('shiftStartTime').value = value;
+            } else if (field === 'endTime') {
+                document.getElementById('shiftEndTime').value = value;
+            }
+        }
+
+        function syncWithShiftLocation(value) {
+            document.getElementById('shiftLocation').value = value;
+        }
+
+        function updateMainShiftTime(field, value) {
+            // Update the first row (current user) if exists
+            const firstRow = document.querySelector('.readonly-row');
+            if (firstRow) {
+                const input = firstRow.querySelector(`input[data-field="${field}"]`);
+                if (input) {
+                    input.value = value;
+                }
+            }
+        }
+
+        function updateMainShiftLocation(value) {
+            // Update the first row (current user) if exists
+            const firstRow = document.querySelector('.readonly-row');
+            if (firstRow) {
+                const input = firstRow.querySelector('input[data-field="location"]');
+                if (input) {
+                    input.value = value;
+                }
+            }
+        }
+
+        function saveCoworkers() {
+            if (!shiftData || !shiftData.id) {
+                showError('No shift data available');
+                return;
+            }
+            
+            const tbody = document.getElementById('coworkersTableBody');
+            const coworkersData = [];
+            
+            tbody.querySelectorAll('tr').forEach(row => {
+                const name = row.querySelector('input[data-field="name"]').value;
+                if (name) {
+                    coworkersData.push({
+                        name: name,
+                        position: row.querySelector('input[data-field="position"]').value,
+                        startTime: row.querySelector('input[data-field="startTime"]').value,
+                        endTime: row.querySelector('input[data-field="endTime"]').value,
+                        location: row.querySelector('input[data-field="location"]').value,
+                        employeeId: currentUser && row.dataset.isMe ? currentUser.id : ''
+                    });
+                }
+            });
+            
+            if (isGoogleAppsScript) {
+                google.script.run
+                    .withSuccessHandler(function() {
+                        showSuccess('Coworkers saved successfully');
+                        setTimeout(goBack, 1500);
+                    })
+                    .withFailureHandler(function(error) {
+                        showError('Error saving coworkers: ' + error);
+                    })
+                    .saveCoworkers(shiftData.id, coworkersData);
+            } else {
+                showSuccess('Coworkers saved successfully');
+                console.log('Saving coworkers:', coworkersData);
+                setTimeout(goBack, 1500);
+            }
+        }
+
+        function goBack() {
+            if (window.opener) {
+                window.close();
+            } else {
+                history.back();
+            }
+        }
+    </script>
+</body>
+</html>
