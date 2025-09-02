@@ -1865,6 +1865,45 @@ function getFunctionCatalog() {
     { name: 'createBackup', description: 'Creates a JSON backup snapshot' },
     { name: 'getLastBackupInfo', description: 'Returns last backup summary' },
     { name: 'repairSheet', description: 'Repairs headers/validation on CRM sheet' },
-    { name: 'exportBackup', description: 'Returns exportable JSON of key data' }
+    { name: 'exportBackup', description: 'Returns exportable JSON of key data' },
+    { name: 'getNavigationUrl', description: 'Generates proper navigation URLs' },
+    { name: 'getPageUrls', description: 'Returns all page URLs for navigation' }
   ];
+}
+
+// ===============================================
+// NAVIGATION URL FUNCTIONS (Solution 2)
+// ===============================================
+
+/**
+ * Generates a proper navigation URL for a target page
+ * @param {string} targetPage - The page to navigate to ('landing', 'employee', 'shift')
+ * @return {string} The full URL for the target page
+ */
+function getNavigationUrl(targetPage) {
+  const scriptUrl = ScriptApp.getService().getUrl();
+  console.log(`[NAV] Generating URL for page: ${targetPage}, base: ${scriptUrl}`);
+  
+  if (targetPage === 'landing' || !targetPage) {
+    return scriptUrl;
+  } else {
+    return scriptUrl + '?page=' + targetPage;
+  }
+}
+
+/**
+ * Returns all navigation URLs for client-side caching
+ * @return {Object} Object containing URLs for all pages
+ */
+function getPageUrls() {
+  const baseUrl = ScriptApp.getService().getUrl();
+  const urls = {
+    landing: baseUrl,
+    employee: baseUrl + '?page=employee',
+    shift: baseUrl + '?page=shift',
+    currentUrl: baseUrl
+  };
+  
+  console.log('[NAV] Generated page URLs:', JSON.stringify(urls));
+  return urls;
 }
