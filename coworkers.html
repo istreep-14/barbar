@@ -343,6 +343,10 @@
                 <div class="shift-info-item">
                     <span class="shift-info-label">Date</span>
                     <span class="shift-info-value" id="shiftDate">-</span>
+                    <div style="margin-top: 0.5rem;">
+                        <div style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700);" id="userName">Loading...</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">Bartender</div>
+                    </div>
                 </div>
                 <div class="shift-info-item">
                     <span class="shift-info-label">Start Time</span>
@@ -388,7 +392,7 @@
             </button>
             
             <div class="action-buttons">
-                <button class="btn" onclick="goBack()">Cancel</button>
+                <button class="btn" onclick="handleCancel()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveCoworkers()">
                     <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -407,6 +411,8 @@
         let currentUser = null;
         let coworkers = [];
         let isGoogleAppsScript = false;
+        let pageUrls = null;
+        let hasUnsavedChanges = false;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -440,6 +446,20 @@
             loadPositions();
             loadLocations();
             loadCurrentUser();
+            
+            // Load navigation URLs
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run.withSuccessHandler(function(urls) {
+                    pageUrls = urls;
+                }).withFailureHandler(function(error) {
+                    console.error('Failed to load navigation URLs:', error);
+                }).getPageUrls();
+            }
+            
+            // Track changes
+            document.addEventListener('input', function() {
+                hasUnsavedChanges = true;
+            });
         });
 
         function showError(message) {
@@ -555,6 +575,11 @@
                 google.script.run
                     .withSuccessHandler(function(user) {
                         currentUser = user;
+                        if (user) {
+                            document.getElementById('userName').textContent = user.name || 'Unknown User';
+                        } else {
+                            document.getElementById('userName').textContent = 'No user set';
+                        }
                         if (user && coworkers.length === 0) {
                             // Add current user as first coworker
                             addCurrentUserRow();
@@ -564,6 +589,8 @@
                         console.error('Error loading current user:', error);
                     })
                     .getCurrentUser();
+            } else {
+                document.getElementById('userName').textContent = 'Test User';
             }
         }
 
@@ -685,7 +712,7 @@
             
             // Setup autocompletes
             setupEmployeeAutocomplete(row.querySelector(`#${nameId}`), row);
-            setupPositionAutocomplete(row.querySelector(`#${positionId}`));
+            setupPositionAutocomplete(row.querySelector(`#${positionId}`), row);
             setupLocationAutocomplete(row.querySelector(`#${locationId}`), row.querySelector(`#${locationId}`).nextElementSibling);
         }
 
@@ -724,10 +751,14 @@
                     item.textContent = `${emp.firstName} ${emp.lastName}`;
                     item.addEventListener('click', function() {
                         input.value = `${emp.firstName} ${emp.lastName}`;
+                        input.setAttribute('data-valid', 'true');
+                        input.setAttribute('data-employee-id', emp.empId || '');
                         // Auto-fill position
                         const positionInput = row.querySelector('input[data-field="position"]');
                         if (positionInput && emp.position) {
-                            positionInput.value = emp.position;
+                            // If employee has multiple positions, use the first one
+                            const positions = emp.position.split(',').map(p => p.trim());
+                            positionInput.value = positions[0] || emp.position;
                         }
                         dropdown.classList.remove('active');
                     });
@@ -736,9 +767,41 @@
             });
             
             setupAutocompleteKeyboard(input, dropdown);
+            
+            // Validate on blur
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    const value = this.value.trim();
+                    if (value && this.getAttribute('data-valid') !== 'true') {
+                        // Check if the entered name matches any employee
+                        const employee = employees.find(emp => 
+                            `${emp.firstName} ${emp.lastName}`.trim().toLowerCase() === value.toLowerCase()
+                        );
+                        
+                        if (!employee) {
+                            this.style.borderColor = 'var(--red-500)';
+                            this.setAttribute('data-valid', 'false');
+                            showError('Please select a valid employee from the list');
+                        } else {
+                            this.setAttribute('data-valid', 'true');
+                            this.setAttribute('data-employee-id', employee.empId || '');
+                            this.style.borderColor = '';
+                        }
+                    } else if (!value) {
+                        this.style.borderColor = '';
+                        this.setAttribute('data-valid', '');
+                    }
+                }, 200);
+            });
+            
+            // Reset validation on input
+            input.addEventListener('input', function() {
+                this.setAttribute('data-valid', '');
+                this.style.borderColor = '';
+            });
         }
 
-        function setupPositionAutocomplete(input) {
+        function setupPositionAutocomplete(input, row) {
             const dropdown = input.nextElementSibling;
             let selectedIndex = -1;
             
@@ -747,7 +810,26 @@
                 dropdown.innerHTML = '';
                 selectedIndex = -1;
                 
-                const matches = positions.filter(pos => 
+                // Get the employee name from the same row
+                const nameInput = row.querySelector('input[data-field="name"]');
+                const employeeName = nameInput ? nameInput.value.trim() : '';
+                
+                // Find the employee
+                const employee = employees.find(emp => 
+                    `${emp.firstName} ${emp.lastName}`.trim() === employeeName
+                );
+                
+                // If employee found, only show their positions
+                let availablePositions = positions;
+                if (employee && employee.position) {
+                    // Split multiple positions if they exist (comma-separated)
+                    const empPositions = employee.position.split(',').map(p => p.trim());
+                    availablePositions = positions.filter(pos => 
+                        empPositions.some(empPos => empPos.toLowerCase() === pos.name.toLowerCase())
+                    );
+                }
+                
+                const matches = availablePositions.filter(pos => 
                     pos.name.toLowerCase().includes(value)
                 );
                 
@@ -921,10 +1003,62 @@
         }
 
         function goBack() {
-            if (window.opener) {
-                window.close();
+            // Navigate to shift page
+            navigateToShiftPage();
+        }
+        
+        function navigateToShiftPage() {
+            // If URLs are cached, use them
+            if (pageUrls && pageUrls.shift) {
+                try {
+                    // Try to navigate the top window first (in case we're in an iframe)
+                    if (window.top && window.top !== window) {
+                        window.top.location.href = pageUrls.shift;
+                    } else {
+                        window.location.href = pageUrls.shift;
+                    }
+                } catch (e) {
+                    // If cross-origin error, navigate current window
+                    window.location.href = pageUrls.shift;
+                }
+                return;
+            }
+            
+            // Otherwise, get URLs from server
+            if (isGoogleAppsScript) {
+                google.script.run.withSuccessHandler(function(urls) {
+                    if (urls && urls.shift) {
+                        try {
+                            if (window.top && window.top !== window) {
+                                window.top.location.href = urls.shift;
+                            } else {
+                                window.location.href = urls.shift;
+                            }
+                        } catch (e) {
+                            window.location.href = urls.shift;
+                        }
+                    } else {
+                        // Fallback
+                        window.location.href = '?page=shift';
+                    }
+                }).withFailureHandler(function(error) {
+                    console.error('Failed to get URLs:', error);
+                    // Fallback
+                    window.location.href = '?page=shift';
+                }).getPageUrls();
             } else {
-                history.back();
+                // Fallback for non-GAS environment
+                window.location.href = '?page=shift';
+            }
+        }
+        
+        function handleCancel() {
+            if (hasUnsavedChanges) {
+                if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                    goBack();
+                }
+            } else {
+                goBack();
             }
         }
     </script>

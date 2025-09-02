@@ -285,10 +285,11 @@
         }
 
         .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
         }
 
         .stat-card {
@@ -297,6 +298,8 @@
             border-radius: 0.5rem;
             padding: 1.5rem;
             text-align: center;
+            flex: 1;
+            min-width: 180px;
         }
 
         .stat-icon {
@@ -379,6 +382,12 @@
 
         tr:hover {
             background-color: var(--gray-50);
+            cursor: pointer;
+        }
+        
+        tr.selected {
+            background-color: var(--blue-50) !important;
+            box-shadow: inset 3px 0 0 var(--blue-500);
         }
 
         .modal {
@@ -1055,31 +1064,30 @@
                 }
 
                 row.innerHTML = `
-                    <td>${formatDate(date)}</td>
+                    <td>${formatShiftDate(date)}</td>
+                    <td>${getDayOfWeek(date)}</td>
                     <td>${formatTime(startTime)}</td>
                     <td>${formatTime(endTime)}</td>
                     <td class="hours">${hours.toFixed(1)}h</td>
-                    <td>${location}</td>
                     <td class="currency">$${tips.toFixed(2)}</td>
-                    <td class="currency">$${tipsPerHour.toFixed(2)}</td>
-                    <td>${notes || '-'}</td>
-                    <td>
-                        <div class="actions">
-                            <button class="btn-edit" onclick="editShift('${shift.id}')">
-                                <svg style="width: 0.75rem; height: 0.75rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                                Edit
-                            </button>
-                            <button class="btn-delete" onclick="deleteShift('${shift.id}')">
-                                <svg style="width: 0.75rem; height: 0.75rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                                Delete
-                            </button>
-                        </div>
-                    </td>
+                    <td class="currency">$${tipsPerHour.toFixed(2)}/hr</td>
+                    <td>${location}</td>
                 `;
+                
+                // Add row click handler for selection
+                row.onclick = function() {
+                    selectRow(index);
+                };
+                
+                // Add hover effect
+                row.onmouseenter = function() {
+                    this.style.backgroundColor = 'var(--gray-50)';
+                };
+                row.onmouseleave = function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.backgroundColor = '';
+                    }
+                };
             });
         }
 
@@ -1491,12 +1499,18 @@
                 </div>
                 ` : ''}
                 
-                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200);">
-                    <button class="btn btn-primary" style="width: 100%; background: var(--blue-500); color: white; border-color: var(--blue-500);" onclick="editShift('${shift.id}')">
-                        Edit Shift
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200); display: flex; justify-content: center; gap: 1rem;">
+                    <button style="background: none; border: none; color: var(--blue-600); padding: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;" onclick="editShift('${shift.id}')" title="Edit Shift">
+                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Edit
                     </button>
-                    <button class="btn" style="width: 100%; margin-top: 0.5rem; color: var(--red-600); border-color: var(--red-600);" onclick="if(confirm('Delete this shift?')) deleteShift('${shift.id}')">
-                        Delete Shift
+                    <button style="background: none; border: none; color: var(--red-600); padding: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;" onclick="if(confirm('Delete this shift?')) deleteShift('${shift.id}')" title="Delete Shift">
+                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Delete
                     </button>
                 </div>
             `;
@@ -1578,6 +1592,32 @@
                     item.classList.remove('selected');
                 }
             });
+        }
+        
+        // Format date for shift table display (M/D/YY)
+        function formatShiftDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const year = date.getFullYear().toString().slice(-2);
+                return `${month}/${day}/${year}`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+        
+        // Get day of week (3 letters)
+        function getDayOfWeek(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                return days[date.getDay()];
+            } catch (e) {
+                return '';
+            }
         }
         
         // Format date for display
