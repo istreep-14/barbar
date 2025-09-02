@@ -314,6 +314,21 @@ function doGet(e) {
     const pageParam = e && e.parameter ? (e.parameter.page || e.parameter.view) : null;
     const page = pageParam ? String(pageParam) : 'landing';
     console.log(`[DOGET] 📄 Serving page: ${page}`);
+    console.log(`[DOGET] 🔍 Available parameters:`, JSON.stringify(e?.parameter || {}));
+    
+    // Validate page parameter
+    const validPages = ['landing', 'employee', 'shift'];
+    if (!validPages.includes(page)) {
+      console.log(`[DOGET] ⚠️ Invalid page '${page}', redirecting to landing`);
+      const redirectUrl = ScriptApp.getService().getUrl() + '?page=landing';
+      const redirectHtml = HtmlService.createHtmlOutput(`
+        <html>
+          <head><meta http-equiv="refresh" content="0;url=${redirectUrl}"></head>
+          <body>Redirecting to landing page...</body>
+        </html>
+      `);
+      return redirectHtml;
+    }
     
     let pageTitle = 'Bar Operations';
     if (page === 'employee') pageTitle = 'Bar Employee CRM';
@@ -329,6 +344,7 @@ function doGet(e) {
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
     
     console.log(`[DOGET] ✅ Successfully created HTML output for: ${page}`);
+    console.log(`[DOGET] 🔗 Web app URL structure: ${ScriptApp.getService().getUrl()}`);
     return htmlOutput;
   } catch (error) {
     console.error(`[DOGET] ❌ Error serving HTML:`, error);

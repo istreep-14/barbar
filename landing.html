@@ -58,16 +58,97 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Bar Operations</h1>
+            <h1>🍺 Bar Operations Dashboard</h1>
             <div class="tabs">
-                <a class="tab-btn" href="?page=employee" title="Employee CRM">Employee CRM</a>
-                <a class="tab-btn" href="?page=shift" title="Shift Tracker">Shift Tracker</a>
+                <button class="tab-btn" onclick="navigateToPage('employee')" title="Employee CRM">👥 Employee CRM</button>
+                <button class="tab-btn" onclick="navigateToPage('shift')" title="Shift Tracker">⏰ Shift Tracker</button>
             </div>
         </div>
         
+        <div class="content">
+            <div style="padding: 40px; text-align: center;">
+                <h2>🎯 Welcome to Bar Operations</h2>
+                <p style="margin: 20px 0; color: #666; font-size: 18px;">Choose a module to get started:</p>
+                
+                <div style="display: flex; gap: 30px; justify-content: center; margin: 40px 0; flex-wrap: wrap;">
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; min-width: 250px;" onclick="navigateToPage('employee')">
+                        <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
+                        <h3 style="color: #2c3e50; margin-bottom: 10px;">Employee CRM</h3>
+                        <p style="color: #666; margin: 0;">Manage staff information, skills, and positions</p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; min-width: 250px;" onclick="navigateToPage('shift')">
+                        <div style="font-size: 48px; margin-bottom: 15px;">⏰</div>
+                        <h3 style="color: #2c3e50; margin-bottom: 10px;">Shift Tracker</h3>
+                        <p style="color: #666; margin: 0;">Log shifts, track hours, and manage tips</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 40px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+                    <h4 style="color: #1976d2; margin-bottom: 10px;">🔧 System Status</h4>
+                    <div id="systemStatus" style="color: #666;">Checking connection...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    
+    <script>
+        console.log('🚀 [LANDING] ================================');
+        console.log('🚀 [LANDING] Bar Operations Landing Page');
+        console.log('🚀 [LANDING] ================================');
+        console.log('[LANDING] ⏰ Load started at:', new Date().toISOString());
+        console.log('[LANDING] 📍 Current URL:', window.location.href);
+        console.log('[LANDING] 🔧 Google Apps Script available:', typeof google !== 'undefined' && typeof google.script !== 'undefined');
+
+        function navigateToPage(page) {
+            console.log('[LANDING] 🧭 Navigating to page:', page);
+            console.log('[LANDING] 📍 Current URL:', window.location.href);
+            
+            // Get the base URL (remove any existing parameters)
+            const baseUrl = window.location.href.split('?')[0];
+            console.log('[LANDING] 🔗 Base URL:', baseUrl);
+            
+            // Construct new URL with page parameter
+            const newUrl = baseUrl + '?page=' + page;
+            console.log('[LANDING] 🎯 New URL:', newUrl);
+            
+            // Navigate to the new page
+            window.location.href = newUrl;
+        }
+
+        // Test system connection on load
+        window.onload = function() {
+            console.log('[LANDING] 🔄 Page loaded, testing system connection...');
+            
+            const statusDiv = document.getElementById('systemStatus');
+            if (!statusDiv) {
+                console.error('[LANDING] ❌ System status div not found');
+                return;
+            }
+            
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                console.log('[LANDING] 📡 Testing Google Apps Script connection...');
+                statusDiv.innerHTML = '🔄 Testing connection...';
+                
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        console.log('[LANDING] ✅ System connection test successful:', result);
+                        statusDiv.innerHTML = '✅ Connected to Google Sheets - System Ready';
+                        statusDiv.style.color = '#2e7d32';
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('[LANDING] ❌ System connection test failed:', error);
+                        statusDiv.innerHTML = '❌ Connection Error: ' + error.message;
+                        statusDiv.style.color = '#d32f2f';
+                    })
+                    .testConnection();
+            } else {
+                console.log('[LANDING] ⚠️ Google Apps Script not available');
+                statusDiv.innerHTML = '⚠️ Google Apps Script not available - Check deployment';
+                statusDiv.style.color = '#f57c00';
+            }
+        };
+    </script>
 </body>
 </html>
 

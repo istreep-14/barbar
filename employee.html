@@ -566,6 +566,14 @@
         <div class="header">
             <h1>🍺 Bar Employee CRM</h1>
             <div class="header-info">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-info btn-sm" onclick="navigateToPage('landing')" title="Back to Dashboard">
+                        🏠 Dashboard
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="navigateToPage('shift')" title="Shift Tracker">
+                        ⏰ Shifts
+                    </button>
+                </div>
                 <div class="sync-status" id="syncStatus">
                     <span class="sync-dot">🟢</span>
                     <span>Connected</span>
@@ -1829,6 +1837,23 @@
                     </div>
                 </div>
             `;
+        }
+
+        // Navigation function for page routing
+        function navigateToPage(page) {
+            console.log('[NAVIGATION] 🧭 Navigating from employee page to:', page);
+            console.log('[NAVIGATION] 📍 Current URL:', window.location.href);
+            
+            // Get the base URL (remove any existing parameters)
+            const baseUrl = window.location.href.split('?')[0];
+            console.log('[NAVIGATION] 🔗 Base URL:', baseUrl);
+            
+            // Construct new URL with page parameter
+            const newUrl = baseUrl + '?page=' + page;
+            console.log('[NAVIGATION] 🎯 New URL:', newUrl);
+            
+            // Navigate to the new page
+            window.location.href = newUrl;
         }
     </script>
 </body>
