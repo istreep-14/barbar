@@ -306,27 +306,46 @@ function formatDateForDisplay(dateInput) {
  * Serves the main web app HTML
  */
 function doGet(e) {
+  const timestamp = new Date().toISOString();
+  console.log(`[DOGET] 🚀 ${timestamp} - Page request received`);
+  console.log(`[DOGET] 📊 Request parameters:`, e?.parameter || 'None');
+  
   try {
     const pageParam = e && e.parameter ? (e.parameter.page || e.parameter.view) : null;
     const page = pageParam ? String(pageParam) : 'landing';
+    console.log(`[DOGET] 📄 Serving page: ${page}`);
+    
     let pageTitle = 'Bar Operations';
     if (page === 'employee') pageTitle = 'Bar Employee CRM';
     if (page === 'shift') pageTitle = 'Bartending Shift Tracker';
+    
+    console.log(`[DOGET] 📝 Page title: ${pageTitle}`);
+    console.log(`[DOGET] 🔄 Creating HTML template for: ${page}`);
+    
     const html = HtmlService.createTemplateFromFile(page);
     const htmlOutput = html.evaluate()
       .setTitle(pageTitle)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    
+    console.log(`[DOGET] ✅ Successfully created HTML output for: ${page}`);
     return htmlOutput;
   } catch (error) {
+    console.error(`[DOGET] ❌ Error serving HTML:`, error);
+    console.error(`[DOGET] 📝 Error stack:`, error.stack);
     Logger.log('Error serving HTML: ' + error.toString());
+    
     const errorHtml = HtmlService.createHtmlOutput(`
       <html>
         <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
           <h2>🚫 CRM System Error</h2>
           <p>There was an error loading the Bar Employee CRM.</p>
           <p><strong>Error:</strong> ${error.toString()}</p>
+          <p><strong>Timestamp:</strong> ${timestamp}</p>
+          <p><strong>Requested Page:</strong> ${e?.parameter?.page || 'landing'}</p>
           <button onclick="location.reload()">🔄 Reload Page</button>
+          <hr>
+          <p><small>Check the browser console (F12) for more details</small></p>
         </body>
       </html>
     `).setTitle('CRM Error');
