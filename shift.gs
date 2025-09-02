@@ -7,10 +7,10 @@
 const SHEET_NAME = 'Shifts';
 
 /**
- * Serves the HTML web app
+ * Legacy entry point (renamed to avoid collision). Kept for reference if needed.
  */
-function doGet() {
-  return HtmlService.createTemplateFromFile('index')
+function doGetShift() {
+  return HtmlService.createTemplateFromFile('shift')
     .evaluate()
     .setTitle('Bartending Shift Tracker')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);

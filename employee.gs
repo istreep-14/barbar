@@ -306,9 +306,19 @@ function formatDateForDisplay(dateInput) {
  */
 function doGet(e) {
   try {
-    const html = HtmlService.createTemplateFromFile('index');
+    const view = (e && e.parameter && e.parameter.view) ? String(e.parameter.view) : 'index';
+    let fileName = 'index';
+    let pageTitle = 'Bar Operations';
+    if (view === 'employee') {
+      fileName = 'employee';
+      pageTitle = 'Bar Employee CRM';
+    } else if (view === 'shift') {
+      fileName = 'shift';
+      pageTitle = 'Bartending Shift Tracker';
+    }
+    const html = HtmlService.createTemplateFromFile(fileName);
     const htmlOutput = html.evaluate()
-      .setTitle('Bar Employee CRM')
+      .setTitle(pageTitle)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
     
