@@ -104,15 +104,11 @@
             console.log('[LANDING] 🧭 Navigating to page:', page);
             console.log('[LANDING] 📍 Current URL:', window.location.href);
             
-            // Get the base URL (remove any existing parameters)
-            const baseUrl = window.location.href.split('?')[0];
-            console.log('[LANDING] 🔗 Base URL:', baseUrl);
+            // Use relative URL - just change the page parameter
+            const newUrl = '?page=' + page;
+            console.log('[LANDING] 🎯 Relative URL:', newUrl);
             
-            // Construct new URL with page parameter
-            const newUrl = baseUrl + '?page=' + page;
-            console.log('[LANDING] 🎯 New URL:', newUrl);
-            
-            // Navigate to the new page
+            // Navigate using relative URL
             window.location.href = newUrl;
         }
 

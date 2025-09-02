@@ -320,10 +320,10 @@ function doGet(e) {
     const validPages = ['landing', 'employee', 'shift'];
     if (!validPages.includes(page)) {
       console.log(`[DOGET] ⚠️ Invalid page '${page}', redirecting to landing`);
-      const redirectUrl = ScriptApp.getService().getUrl() + '?page=landing';
+      // Use relative redirect to avoid hardcoding script ID
       const redirectHtml = HtmlService.createHtmlOutput(`
         <html>
-          <head><meta http-equiv="refresh" content="0;url=${redirectUrl}"></head>
+          <head><meta http-equiv="refresh" content="0;url=."></head>
           <body>Redirecting to landing page...</body>
         </html>
       `);

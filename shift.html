@@ -948,15 +948,11 @@
             console.log('[NAVIGATION] 🧭 Navigating from shift page to:', page);
             console.log('[NAVIGATION] 📍 Current URL:', window.location.href);
             
-            // Get the base URL (remove any existing parameters)
-            const baseUrl = window.location.href.split('?')[0];
-            console.log('[NAVIGATION] 🔗 Base URL:', baseUrl);
+            // Use relative URL - just change the page parameter
+            const newUrl = page === 'landing' ? '.' : '?page=' + page;
+            console.log('[NAVIGATION] 🎯 Relative URL:', newUrl);
             
-            // Construct new URL with page parameter
-            const newUrl = baseUrl + '?page=' + page;
-            console.log('[NAVIGATION] 🎯 New URL:', newUrl);
-            
-            // Navigate to the new page
+            // Navigate using relative URL
             window.location.href = newUrl;
         }
     </script>
