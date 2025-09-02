@@ -5,32 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bartending Shift Tracker</title>
     <style>
-        * {
+        /* Design System - Tailwind Inspired */
+        * { 
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Colors */
+            --purple-gradient-start: #667eea;
+            --purple-gradient-end: #764ba2;
+            --gray-gradient-start: #2c3e50;
+            --gray-gradient-end: #34495e;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+            --amber-500: #f59e0b;
+            --amber-600: #d97706;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--purple-gradient-start) 0%, var(--purple-gradient-end) 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 1.25rem;
+            color: var(--gray-900);
+            line-height: 1.5;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: var(--white);
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-xl);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
+            background: linear-gradient(135deg, var(--gray-gradient-start) 0%, var(--gray-gradient-end) 100%);
+            color: var(--white);
+            padding: 1.5rem 2rem;
             text-align: center;
             display: flex;
             justify-content: space-between;
@@ -38,109 +75,165 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            font-weight: 300;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
         .header p {
             opacity: 0.9;
-            font-size: 1.1rem;
+            font-size: 0.875rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .content {
-            padding: 30px;
+            padding: 2rem;
         }
 
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 1rem;
         }
 
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
             font-weight: 500;
-            transition: all 0.3s ease;
+            cursor: pointer;
+            transition: all 0.2s ease;
             text-decoration: none;
-            display: inline-block;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background-color: var(--blue-500);
+            color: var(--white);
+            border-color: var(--blue-500);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--blue-600);
+        }
+
+        .btn-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            margin: 0 auto 0.75rem;
+            color: var(--gray-600);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background-color: var(--red-500);
+            color: var(--white);
+            border-color: var(--red-500);
         }
 
         .btn-danger:hover {
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+            background-color: var(--red-600);
         }
 
         .btn-edit {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            padding: 8px 16px;
-            font-size: 14px;
+            background-color: var(--amber-500);
+            color: var(--white);
+            border: none;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
         }
 
         .btn-edit:hover {
-            box-shadow: 0 6px 15px rgba(243, 156, 18, 0.3);
+            background-color: var(--amber-600);
         }
 
         .btn-delete {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            padding: 8px 16px;
-            font-size: 14px;
+            background-color: var(--red-500);
+            color: var(--white);
+            border: none;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
         }
 
         .table-container {
             overflow-x: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            background: var(--white);
         }
 
         th {
-            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
-            color: white;
-            padding: 15px 12px;
+            background: linear-gradient(135deg, var(--gray-gradient-start) 0%, var(--gray-gradient-end) 100%);
+            color: var(--white);
+            padding: 0.875rem 0.75rem;
             text-align: left;
             font-weight: 600;
-            border-bottom: 3px solid #667eea;
+            font-size: 0.875rem;
         }
 
         td {
-            padding: 15px 12px;
-            border-bottom: 1px solid #ecf0f1;
-            transition: background-color 0.2s ease;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.875rem;
+            color: var(--gray-900);
         }
 
         tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        tr:nth-child(even) {
-            background-color: #fdfdfd;
-        }
-
-        tr:nth-child(even):hover {
-            background-color: #f0f0f0;
+            background-color: var(--gray-50);
         }
 
         .modal {
@@ -151,18 +244,18 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
         }
 
         .modal-content {
-            background-color: white;
+            background-color: var(--white);
             margin: 5% auto;
             padding: 0;
-            border-radius: 12px;
+            border-radius: 0.5rem;
             width: 90%;
             max-width: 600px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-xl);
             animation: modalSlideIn 0.3s ease-out;
         }
 
@@ -178,64 +271,73 @@
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 12px 12px 0 0;
+            background: linear-gradient(135deg, var(--gray-gradient-start) 0%, var(--gray-gradient-end) 100%);
+            color: var(--white);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .modal-header h2 {
-            font-size: 1.5rem;
-            font-weight: 500;
+            font-size: 1.125rem;
+            font-weight: 600;
         }
 
         .close {
-            color: white;
-            font-size: 28px;
+            color: var(--white);
+            font-size: 1.5rem;
             font-weight: bold;
             cursor: pointer;
             line-height: 1;
             transition: opacity 0.2s ease;
+            background: transparent;
+            border: none;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
         }
 
         .close:hover {
-            opacity: 0.7;
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal-body {
-            padding: 30px;
+            padding: 1.5rem;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 0.375rem;
             font-weight: 500;
-            color: #2c3e50;
-            font-size: 14px;
+            color: var(--gray-700);
+            font-size: 0.875rem;
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background-color: var(--white);
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-group textarea {
@@ -246,93 +348,97 @@
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 1rem;
         }
 
         .modal-footer {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-radius: 0 0 12px 12px;
+            padding: 1rem 1.5rem;
+            background: var(--gray-50);
+            border-radius: 0 0 0.5rem 0.5rem;
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 0.75rem;
+            border-top: 1px solid var(--gray-200);
         }
 
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: var(--gray-500);
+            color: var(--white);
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
             cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .btn-secondary:hover {
-            background: #5a6268;
+            background: var(--gray-600);
         }
 
         .loading {
             display: none;
             text-align: center;
-            padding: 40px;
-            color: #6c757d;
+            padding: 3rem;
+            color: var(--gray-500);
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
+            padding: 3rem;
+            color: var(--gray-500);
         }
 
         .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #495057;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
         }
 
         .actions {
             display: flex;
-            gap: 8px;
+            gap: 0.5rem;
         }
 
         .currency {
-            color: #27ae60;
+            color: var(--green-600);
             font-weight: 600;
         }
 
         .hours {
-            color: #3498db;
+            color: var(--blue-600);
             font-weight: 600;
         }
 
         .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            border: 1px solid #fecaca;
+            font-size: 0.875rem;
         }
 
         .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            border: 1px solid #a7f3d0;
+            font-size: 0.875rem;
         }
 
         .debug-info {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
+            background-color: var(--gray-50);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin: 1rem 0;
             font-family: monospace;
-            font-size: 12px;
-            border: 1px solid #dee2e6;
+            font-size: 0.75rem;
+            border: 1px solid var(--gray-200);
             display: none;
         }
 
@@ -351,23 +457,29 @@
                 width: 95%;
             }
 
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
             .header h1 {
-                font-size: 2rem;
+                font-size: 1.25rem;
             }
 
             th, td {
-                padding: 10px 8px;
-                font-size: 14px;
+                padding: 0.5rem;
+                font-size: 0.75rem;
             }
 
             .actions {
                 flex-direction: column;
-                gap: 5px;
+                gap: 0.25rem;
             }
 
             .btn-edit, .btn-delete {
-                padding: 6px 12px;
-                font-size: 12px;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -376,15 +488,26 @@
     <div class="container">
         <div class="header">
             <div>
-                <h1>🍸 Bartending Shift Tracker</h1>
+                <h1>
+                    <svg class="btn-icon" style="width: 1.5rem; height: 1.5rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Bartending Shift Tracker
+                </h1>
                 <p>Track your shifts, tips, and earnings</p>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div class="nav-buttons">
                 <button class="btn" onclick="navigateToPage('landing')" title="Back to Dashboard">
-                    🏠 Dashboard
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Dashboard
                 </button>
                 <button class="btn" onclick="navigateToPage('employee')" title="Employee CRM">
-                    👥 Employees
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    Employees
                 </button>
             </div>
         </div>
@@ -394,9 +517,44 @@
                 <div>
                     <strong id="totalShifts">0 shifts tracked</strong>
                 </div>
-                <div>
-                    <button class="btn" onclick="loadShifts()">🔄 Refresh Data</button>
-                    <button class="btn" onclick="openAddModal()">+ Add New Shift</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" style="background: var(--blue-500); color: white; border-color: var(--blue-500);" onclick="loadShifts()">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh Data
+                    </button>
+                    <button class="btn btn-primary" style="background: var(--blue-500); color: white; border-color: var(--blue-500);" onclick="openAddModal()">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add New Shift
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="stat-value" id="totalTips">$0</div>
+                    <div class="stat-label">Total Tips</div>
+                </div>
+                <div class="stat-card">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="stat-value" id="totalHours">0h</div>
+                    <div class="stat-label">Total Hours</div>
+                </div>
+                <div class="stat-card">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <div class="stat-value" id="avgTipsPerHour">$0/hr</div>
+                    <div class="stat-label">Average Tips/Hour</div>
                 </div>
             </div>
 
@@ -436,7 +594,12 @@
                 <h3>No shifts tracked yet</h3>
                 <p>Click "Add New Shift" to get started tracking your bartending shifts</p>
                 <br>
-                <button class="btn" onclick="testGoogleScript()">🔧 Test Connection</button>
+                <button class="btn btn-primary" style="background: var(--blue-500); color: white; border-color: var(--blue-500);" onclick="testGoogleScript()">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    Test Connection
+                </button>
             </div>
         </div>
     </div>
@@ -446,7 +609,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Add New Shift</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
+                <button class="close" onclick="closeModal()">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
                 <form id="shiftForm">
@@ -487,7 +654,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="button" class="btn" onclick="saveShift()">Save Shift</button>
+                <button type="button" class="btn btn-primary" style="background: var(--blue-500); color: white; border-color: var(--blue-500);" onclick="saveShift()">Save Shift</button>
             </div>
         </div>
     </div>
@@ -696,13 +863,23 @@
                     <td>${formatTime(endTime)}</td>
                     <td class="hours">${hours.toFixed(1)}h</td>
                     <td>${location}</td>
-                    <td class="currency">${tips.toFixed(2)}</td>
-                    <td class="currency">${tipsPerHour.toFixed(2)}</td>
+                    <td class="currency">$${tips.toFixed(2)}</td>
+                    <td class="currency">$${tipsPerHour.toFixed(2)}</td>
                     <td>${notes || '-'}</td>
                     <td>
                         <div class="actions">
-                            <button class="btn-edit" onclick="editShift('${shift.id}')">Edit</button>
-                            <button class="btn-delete" onclick="deleteShift('${shift.id}')">Delete</button>
+                            <button class="btn-edit" onclick="editShift('${shift.id}')">
+                                <svg style="width: 0.75rem; height: 0.75rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Edit
+                            </button>
+                            <button class="btn-delete" onclick="deleteShift('${shift.id}')">
+                                <svg style="width: 0.75rem; height: 0.75rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete
+                            </button>
                         </div>
                     </td>
                 `;
@@ -713,10 +890,14 @@
             const totalShifts = shifts.length;
             const totalTips = shifts.reduce((sum, shift) => sum + (parseFloat(shift.tips) || 0), 0);
             const totalHours = shifts.reduce((sum, shift) => sum + (parseFloat(shift.hours) || 0), 0);
+            const avgTipsPerHour = totalHours > 0 ? (totalTips / totalHours) : 0;
             
             document.getElementById('totalShifts').innerHTML = 
-                `${totalShifts} shift${totalShifts !== 1 ? 's' : ''} tracked<br>
-                <small>${totalTips.toFixed(2)} total tips | ${totalHours.toFixed(1)} hours</small>`;
+                `${totalShifts} shift${totalShifts !== 1 ? 's' : ''} tracked`;
+            
+            document.getElementById('totalTips').textContent = `$${totalTips.toFixed(2)}`;
+            document.getElementById('totalHours').textContent = `${totalHours.toFixed(1)}h`;
+            document.getElementById('avgTipsPerHour').textContent = `$${avgTipsPerHour.toFixed(2)}/hr`;
         }
 
         function openAddModal() {
