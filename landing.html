@@ -100,49 +100,67 @@
         console.log('[LANDING] 📍 Current URL:', window.location.href);
         console.log('[LANDING] 🔧 Google Apps Script available:', typeof google !== 'undefined' && typeof google.script !== 'undefined');
 
+        // Cache the URLs when page loads
+        let pageUrls = null;
+        
+        // Load URLs on page initialization
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('[LANDING] 🔄 Loading navigation URLs from server...');
+            google.script.run.withSuccessHandler(function(urls) {
+                pageUrls = urls;
+                console.log('[LANDING] ✅ Navigation URLs loaded:', urls);
+            }).withFailureHandler(function(error) {
+                console.error('[LANDING] ❌ Failed to load navigation URLs:', error);
+            }).getPageUrls();
+        });
+        
         function navigateToPage(page) {
             console.log('[LANDING] 🧭 Navigating to page:', page);
             console.log('[LANDING] 📍 Current URL:', window.location.href);
             
-            try {
-                // Get the base URL, handling both iframe and direct access
-                let baseUrl = window.location.href.split('?')[0];
-                
-                // Check if we're in an iframe or special environment
-                if (window.location.href.includes('googleusercontent.com')) {
-                    console.log('[LANDING] 🔍 Detected iframe/embedded environment');
-                    
-                    // Try to get the parent URL if accessible
+            // If URLs are cached, use them
+            if (pageUrls && pageUrls[page]) {
+                console.log('[LANDING] 🎯 Using cached URL:', pageUrls[page]);
+                try {
+                    // Try to navigate the top window first (in case we're in an iframe)
+                    if (window.top && window.top !== window) {
+                        window.top.location.href = pageUrls[page];
+                    } else {
+                        window.location.href = pageUrls[page];
+                    }
+                } catch (e) {
+                    // If top navigation fails, use regular navigation
+                    window.location.href = pageUrls[page];
+                }
+                return;
+            }
+            
+            // Otherwise, get URLs from server
+            console.log('[LANDING] 📡 Fetching URLs from server...');
+            google.script.run.withSuccessHandler(function(urls) {
+                console.log('[LANDING] 📡 Got URLs from server:', urls);
+                pageUrls = urls; // Cache for future use
+                if (urls && urls[page]) {
                     try {
-                        if (window.parent && window.parent !== window && window.parent.location) {
-                            baseUrl = window.parent.location.href.split('?')[0];
-                            console.log('[LANDING] 📍 Parent URL:', baseUrl);
+                        // Try to navigate the top window first (in case we're in an iframe)
+                        if (window.top && window.top !== window) {
+                            window.top.location.href = urls[page];
+                        } else {
+                            window.location.href = urls[page];
                         }
                     } catch (e) {
-                        console.log('[LANDING] ⚠️ Cannot access parent URL (cross-origin)');
+                        // If top navigation fails, use regular navigation
+                        window.location.href = urls[page];
                     }
-                }
-                
-                // Construct the new URL
-                const newUrl = baseUrl + '?page=' + page;
-                console.log('[LANDING] 🎯 Full URL:', newUrl);
-                
-                // Try multiple navigation methods
-                if (window.top && window.top !== window) {
-                    // If we're in an iframe, try to navigate the top window
-                    console.log('[LANDING] 🔄 Attempting top-level navigation');
-                    window.top.location.href = newUrl;
                 } else {
-                    // Otherwise, navigate normally
-                    console.log('[LANDING] 🔄 Attempting normal navigation');
-                    window.location.href = newUrl;
+                    console.error('[LANDING] ❌ Invalid page:', page);
                 }
-            } catch (error) {
-                console.error('[LANDING] ❌ Navigation error:', error);
-                // Fallback: try simple relative navigation
-                console.log('[LANDING] 🔄 Fallback: trying relative navigation');
+            }).withFailureHandler(function(error) {
+                console.error('[LANDING] ❌ Failed to get URLs:', error);
+                // Fallback to client-side navigation
+                console.log('[LANDING] 🔄 Using fallback navigation');
                 window.location.href = '?page=' + page;
-            }
+            }).getPageUrls();
         }
 
         // Test system connection on load
