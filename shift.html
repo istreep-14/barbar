@@ -845,6 +845,16 @@
         let currentUser = null;
         let pageUrls = null;
 
+        // Debug logging function - must be defined before use
+        function debugLog(message) {
+            const timestamp = new Date().toISOString();
+            console.log('[SHIFT-DEBUG] 🔍 ' + timestamp + ': ' + message);
+            const debugContent = document.getElementById('debugContent');
+            if (debugContent) {
+                debugContent.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+            }
+        }
+
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 [SHIFT-INIT] ===============================');
@@ -877,15 +887,6 @@
             setupKeyboardNavigation();
             setupLocationAutocomplete();
         });
-
-        function debugLog(message) {
-            const timestamp = new Date().toISOString();
-            console.log('[SHIFT-DEBUG] 🔍 ' + timestamp + ': ' + message);
-            const debugContent = document.getElementById('debugContent');
-            if (debugContent) {
-                debugContent.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
-            }
-        }
 
         function showError(message) {
             const container = document.getElementById('errorContainer');
