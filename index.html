@@ -60,8 +60,8 @@
         <div class="header">
             <h1>Bar Operations</h1>
             <div class="tabs">
-                <a class="tab-btn" data-target="employeeFrame" href="?view=employee" title="Employee CRM">Employee CRM</a>
-                <a class="tab-btn" data-target="shiftFrame" href="?view=shift" title="Shift Tracker">Shift Tracker</a>
+                <a class="tab-btn" data-target="employeeFrame" href="#" title="Employee CRM">Employee CRM</a>
+                <a class="tab-btn" data-target="shiftFrame" href="#" title="Shift Tracker">Shift Tracker</a>
             </div>
         </div>
         <div class="content">
@@ -87,8 +87,7 @@
             selectTab(initial);
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
-                    // Allow normal navigation to change ?view=... so iframe loads correct content
-                    // But still update tab highlight immediately for better UX
+                    e.preventDefault();
                     selectTab(this.dataset.target);
                 });
             });
