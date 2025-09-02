@@ -771,6 +771,21 @@
         let systemInfo = {};
         let customPositions = [];
 
+        // Debug utilities
+        let isGoogleAppsScript = (typeof google !== 'undefined' && google.script && google.script.run);
+        function debugLog(message, payload) {
+            try {
+                const ts = new Date().toISOString();
+                if (payload !== undefined) {
+                    console.log('[Employee]['+ts+'] ' + message, payload);
+                } else {
+                    console.log('[Employee]['+ts+'] ' + message);
+                }
+            } catch (e) {
+                // no-op
+            }
+        }
+
         // Position icons mapping
         const positionIcons = {
             'Bartender': '🍸',
@@ -784,6 +799,7 @@
 
         // Initialize when the page loads
         window.onload = function() {
+            debugLog('window.onload start. GAS available: ' + isGoogleAppsScript);
             // Load system info and check connection
             loadSystemInfo();
             
@@ -817,14 +833,17 @@
             }
             // Build skills UI
             buildSkillsUI();
+            debugLog('window.onload completed');
         };
 
         // Load system information and test connection
         function loadSystemInfo() {
             updateSyncStatus('Connecting...', false);
+            debugLog('Calling getSystemInfo', { isGoogleAppsScript });
             
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('getSystemInfo success', result);
                     if (result && result.success) {
                         systemInfo = result.info;
                         updateSyncStatus('Connected to Google Sheets', true);
@@ -835,6 +854,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('getSystemInfo failure', error);
                     updateSyncStatus('Connection error', false);
                     console.error('System info error:', error);
                     showStatus('Connection to Google Sheets failed: ' + error.message, 'error');
@@ -863,9 +883,11 @@
             showStatus('Loading employees from Google Sheets...', 'success');
             document.body.classList.add('loading');
             updateSyncStatus('Loading...', false);
+            debugLog('Calling getAllEmployees');
             
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('getAllEmployees success', { count: (result && result.employees) ? result.employees.length : null, raw: result });
                     document.body.classList.remove('loading');
                     
                     if (result && result.success) {
@@ -882,6 +904,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('getAllEmployees failure', error);
                     document.body.classList.remove('loading');
                     console.error('Error loading employees:', error);
                     showStatus('Failed to connect to Google Sheets: ' + error.message, 'error');
@@ -896,8 +919,10 @@
             const container = document.getElementById('skillsContainer');
             if (!container) return;
             container.innerHTML = '<div style="color:#6c757d">Loading skills...</div>';
+            debugLog('Calling getSkillCategories');
             google.script.run
                 .withSuccessHandler(function(res) {
+                    debugLog('getSkillCategories success', res);
                     const categories = (res && res.success && Array.isArray(res.categories) && res.categories.length > 0)
                         ? res.categories
                         : ['Mixology & Classics','Speed & Throughput','Spirits Knowledge','Wine Knowledge','Beer Knowledge','Customer Service','Cleanliness & Organization','POS Proficiency'];
@@ -930,6 +955,7 @@
                     });
                 })
                 .withFailureHandler(function(err) {
+                    debugLog('getSkillCategories failure', err);
                     container.innerHTML = '<div style="color:#dc3545">Failed to load skill categories</div>';
                 })
                 .getSkillCategories();
@@ -987,8 +1013,10 @@
             }
 
             // Load skills for this employee
+            debugLog('Calling getEmployeeSkills', { empId: employee.empId });
             google.script.run
                 .withSuccessHandler(function(res) {
+                    debugLog('getEmployeeSkills success', res);
                     const skills = (res && res.success && res.skills) ? res.skills : {};
                     const sliders = document.querySelectorAll('#skillsContainer .skill-slider');
                     const inputs = document.querySelectorAll('#skillsContainer .skill-input');
@@ -1002,6 +1030,7 @@
                     });
                 })
                 .withFailureHandler(function(err) {
+                    debugLog('getEmployeeSkills failure', err);
                     // keep defaults
                 })
                 .getEmployeeSkills(employee.empId);
@@ -1107,8 +1136,10 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const dataUrl = e.target.result;
+                    debugLog('Calling uploadEmployeePhoto', { hasDataUrl: !!dataUrl, fileName: selectedFile.name, empId });
                     google.script.run
                         .withSuccessHandler(function(result) {
+                            debugLog('uploadEmployeePhoto success', result);
                             if (result && result.success && result.url) {
                                 employee.photoUrl = result.url;
                             } else {
@@ -1117,6 +1148,7 @@
                             finalizeSave();
                         })
                         .withFailureHandler(function(error) {
+                            debugLog('uploadEmployeePhoto failure', error);
                             console.log('Photo upload error:', error);
                             finalizeSave();
                         })
@@ -1136,18 +1168,23 @@
                 });
                 // Save employees first, then skills
                 filterEmployees();
+                debugLog('Calling saveAllEmployees and then saveEmployeeSkills', { empId, skillsCount: Object.keys(skills).length });
                 google.script.run
                     .withSuccessHandler(function() {
+                        debugLog('saveAllEmployees success, proceeding to saveEmployeeSkills');
                         google.script.run
                             .withSuccessHandler(function(){
+                                debugLog('saveEmployeeSkills success');
                                 closeEmployeeForm();
                             })
                             .withFailureHandler(function(){
+                                debugLog('saveEmployeeSkills failure');
                                 closeEmployeeForm();
                             })
                             .saveEmployeeSkills(empId, skills);
                     })
                     .withFailureHandler(function(){
+                        debugLog('saveAllEmployees failure, still attempting saveEmployeeSkills');
                         // still attempt skills
                         google.script.run
                             .withSuccessHandler(function(){ closeEmployeeForm(); })
@@ -1163,9 +1200,11 @@
             showStatus('Saving to Google Sheets...', 'success');
             document.body.classList.add('loading');
             updateSyncStatus('Saving...', true);
+            debugLog('Calling saveAllEmployees (manual save)');
             
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('saveAllEmployees success', result);
                     document.body.classList.remove('loading');
                     if (result && result.success) {
                         showStatus('Data saved to Google Sheets successfully!', 'success');
@@ -1178,6 +1217,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('saveAllEmployees failure', error);
                     document.body.classList.remove('loading');
                     console.error('Error saving employees:', error);
                     showStatus('Failed to save to Google Sheets: ' + error.message, 'error');
@@ -1188,8 +1228,10 @@
 
         // Set "me" employee ID
         function setMeEmployeeId(empId) {
+            debugLog('Calling setMeEmployeeId', { empId });
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('setMeEmployeeId success', result);
                     if (result && result.success) {
                         meEmpId = empId;
                         renderTable(); // Refresh to show crown icon
@@ -1197,6 +1239,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('setMeEmployeeId failure', error);
                     console.log('Failed to set me employee ID:', error);
                 })
                 .setMeEmployeeId(empId);
@@ -1204,8 +1247,10 @@
 
         // Clear "me" employee ID
         function clearMeEmployeeId() {
+            debugLog('Calling clearMeEmployeeId');
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('clearMeEmployeeId success', result);
                     if (result && result.success) {
                         meEmpId = '';
                         renderTable(); // Refresh to remove crown icon
@@ -1213,6 +1258,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('clearMeEmployeeId failure', error);
                     console.log('Failed to clear me employee ID:', error);
                 })
                 .clearMeEmployeeId();
@@ -1644,9 +1690,11 @@
             showStatus('Syncing from Google Sheets...', 'success');
             document.body.classList.add('loading');
             updateSyncStatus('Syncing...', false);
+            debugLog('Calling syncFromSheet');
             
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('syncFromSheet success', { count: (result && result.employees) ? result.employees.length : null, raw: result });
                     document.body.classList.remove('loading');
                     if (result && result.success) {
                         employees = result.employees || [];
@@ -1660,6 +1708,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('syncFromSheet failure', error);
                     document.body.classList.remove('loading');
                     showStatus('Sync failed: ' + error.message, 'error');
                     updateSyncStatus('Sync failed', false);
@@ -1671,8 +1720,10 @@
         function ensureSetup() {
             document.body.classList.add('loading');
             showStatus('Ensuring setup...', 'success');
+            debugLog('Calling ensureAllSheets');
             google.script.run
                 .withSuccessHandler(function(res){
+                    debugLog('ensureAllSheets success', res);
                     document.body.classList.remove('loading');
                     if (res && res.success) {
                         showStatus('Setup complete', 'success');
@@ -1683,6 +1734,7 @@
                     }
                 })
                 .withFailureHandler(function(error){
+                    debugLog('ensureAllSheets failure', error);
                     document.body.classList.remove('loading');
                     showStatus('Setup error: ' + error.message, 'error');
                 })
@@ -1691,8 +1743,10 @@
 
         // Open Google Sheet in new tab
         function openSheet() {
+            debugLog('Calling getSheetUrl');
             google.script.run
                 .withSuccessHandler(function(result) {
+                    debugLog('getSheetUrl success', result);
                     if (result && result.success && result.url) {
                         window.open(result.url, '_blank');
                         showStatus('Opening Google Sheet...', 'success');
@@ -1701,6 +1755,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
+                    debugLog('getSheetUrl failure', error);
                     showStatus('Failed to get sheet URL: ' + error.message, 'error');
                 })
                 .getSheetUrl();
