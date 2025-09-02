@@ -58,90 +58,93 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Bar Operations</h1>
+            <h1>🍺 Bar Operations Dashboard</h1>
             <div class="tabs">
-                <a class="tab-btn" href="?page=employee" title="Employee CRM">Employee CRM</a>
-                <a class="tab-btn" href="?page=shift" title="Shift Tracker">Shift Tracker</a>
+                <button class="tab-btn" onclick="navigateToPage('employee')" title="Employee CRM">👥 Employee CRM</button>
+                <button class="tab-btn" onclick="navigateToPage('shift')" title="Shift Tracker">⏰ Shift Tracker</button>
             </div>
         </div>
         
         <div class="content">
-            <iframe id="iframe-employee" src="?page=employee"></iframe>
-            <iframe id="iframe-shift" src="?page=shift"></iframe>
+            <div style="padding: 40px; text-align: center;">
+                <h2>🎯 Welcome to Bar Operations</h2>
+                <p style="margin: 20px 0; color: #666; font-size: 18px;">Choose a module to get started:</p>
+                
+                <div style="display: flex; gap: 30px; justify-content: center; margin: 40px 0; flex-wrap: wrap;">
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; min-width: 250px;" onclick="navigateToPage('employee')">
+                        <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
+                        <h3 style="color: #2c3e50; margin-bottom: 10px;">Employee CRM</h3>
+                        <p style="color: #666; margin: 0;">Manage staff information, skills, and positions</p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; min-width: 250px;" onclick="navigateToPage('shift')">
+                        <div style="font-size: 48px; margin-bottom: 15px;">⏰</div>
+                        <h3 style="color: #2c3e50; margin-bottom: 10px;">Shift Tracker</h3>
+                        <p style="color: #666; margin: 0;">Log shifts, track hours, and manage tips</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 40px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+                    <h4 style="color: #1976d2; margin-bottom: 10px;">🔧 System Status</h4>
+                    <div id="systemStatus" style="color: #666;">Checking connection...</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        (function() {
-            function log() {
-                const args = Array.prototype.slice.call(arguments);
-                args.unshift('[Landing]', new Date().toISOString());
-                console.log.apply(console, args);
-            }
+        console.log('🚀 [LANDING] ================================');
+        console.log('🚀 [LANDING] Bar Operations Landing Page');
+        console.log('🚀 [LANDING] ================================');
+        console.log('[LANDING] ⏰ Load started at:', new Date().toISOString());
+        console.log('[LANDING] 📍 Current URL:', window.location.href);
+        console.log('[LANDING] 🔧 Google Apps Script available:', typeof google !== 'undefined' && typeof google.script !== 'undefined');
 
-            function getParam(name) {
-                const params = new URLSearchParams(window.location.search || '');
-                return params.get(name);
-            }
+        function navigateToPage(page) {
+            console.log('[LANDING] 🧭 Navigating to page:', page);
+            console.log('[LANDING] 📍 Current URL:', window.location.href);
+            
+            // Use relative URL - just change the page parameter
+            const newUrl = '?page=' + page;
+            console.log('[LANDING] 🎯 Relative URL:', newUrl);
+            
+            // Navigate using relative URL
+            window.location.href = newUrl;
+        }
 
-            function activateTab(tabName) {
-                var tabs = document.querySelectorAll('.tab-btn');
-                for (var i = 0; i < tabs.length; i++) {
-                    var btn = tabs[i];
-                    var isActive = (btn.getAttribute('href') || '').indexOf('page=' + tabName) !== -1;
-                    btn.classList.toggle('active', isActive);
-                }
-                var empFrame = document.getElementById('iframe-employee');
-                var shiftFrame = document.getElementById('iframe-shift');
-                var showEmployee = tabName === 'employee';
-                if (empFrame) empFrame.classList.toggle('active', showEmployee);
-                if (shiftFrame) shiftFrame.classList.toggle('active', !showEmployee);
-                log('Activated tab:', tabName);
+        // Test system connection on load
+        window.onload = function() {
+            console.log('[LANDING] 🔄 Page loaded, testing system connection...');
+            
+            const statusDiv = document.getElementById('systemStatus');
+            if (!statusDiv) {
+                console.error('[LANDING] ❌ System status div not found');
+                return;
             }
-
-            function bindTabs() {
-                var tabs = document.querySelectorAll('.tab-btn');
-                for (var i = 0; i < tabs.length; i++) {
-                    (function(btn) {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            var href = btn.getAttribute('href') || '?page=employee';
-                            var tabName = (href.split('page=')[1] || 'employee').split('&')[0];
-                            if (history && history.replaceState) {
-                                history.replaceState(null, '', '?page=' + tabName);
-                            }
-                            activateTab(tabName);
-                        });
-                    })(tabs[i]);
-                }
+            
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                console.log('[LANDING] 📡 Testing Google Apps Script connection...');
+                statusDiv.innerHTML = '🔄 Testing connection...';
+                
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        console.log('[LANDING] ✅ System connection test successful:', result);
+                        statusDiv.innerHTML = '✅ Connected to Google Sheets - System Ready';
+                        statusDiv.style.color = '#2e7d32';
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('[LANDING] ❌ System connection test failed:', error);
+                        statusDiv.innerHTML = '❌ Connection Error: ' + error.message;
+                        statusDiv.style.color = '#d32f2f';
+                    })
+                    .testConnection();
+            } else {
+                console.log('[LANDING] ⚠️ Google Apps Script not available');
+                statusDiv.innerHTML = '⚠️ Google Apps Script not available - Check deployment';
+                statusDiv.style.color = '#f57c00';
             }
-
-            function bindIframeEvents() {
-                var emp = document.getElementById('iframe-employee');
-                var shift = document.getElementById('iframe-shift');
-                if (emp) {
-                    emp.addEventListener('load', function() { log('Iframe loaded:', 'employee'); });
-                    emp.addEventListener('error', function(evt) { console.error('[Landing]', new Date().toISOString(), 'Iframe error: employee', evt); });
-                } else {
-                    console.warn('[Landing]', new Date().toISOString(), 'Employee iframe not found');
-                }
-                if (shift) {
-                    shift.addEventListener('load', function() { log('Iframe loaded:', 'shift'); });
-                    shift.addEventListener('error', function(evt) { console.error('[Landing]', new Date().toISOString(), 'Iframe error: shift', evt); });
-                } else {
-                    console.warn('[Landing]', new Date().toISOString(), 'Shift iframe not found');
-                }
-            }
-
-            // Init
-            bindTabs();
-            bindIframeEvents();
-            var initial = getParam('page') || 'employee';
-            activateTab(initial);
-            log('Landing initialized. Initial tab:', initial);
-        })();
+        };
     </script>
-    
 </body>
 </html>
 

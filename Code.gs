@@ -306,27 +306,62 @@ function formatDateForDisplay(dateInput) {
  * Serves the main web app HTML
  */
 function doGet(e) {
+  const timestamp = new Date().toISOString();
+  console.log(`[DOGET] 🚀 ${timestamp} - Page request received`);
+  console.log(`[DOGET] 📊 Request parameters:`, e?.parameter || 'None');
+  
   try {
     const pageParam = e && e.parameter ? (e.parameter.page || e.parameter.view) : null;
     const page = pageParam ? String(pageParam) : 'landing';
+    console.log(`[DOGET] 📄 Serving page: ${page}`);
+    console.log(`[DOGET] 🔍 Available parameters:`, JSON.stringify(e?.parameter || {}));
+    
+    // Validate page parameter
+    const validPages = ['landing', 'employee', 'shift'];
+    if (!validPages.includes(page)) {
+      console.log(`[DOGET] ⚠️ Invalid page '${page}', redirecting to landing`);
+      // Use relative redirect to avoid hardcoding script ID
+      const redirectHtml = HtmlService.createHtmlOutput(`
+        <html>
+          <head><meta http-equiv="refresh" content="0;url=."></head>
+          <body>Redirecting to landing page...</body>
+        </html>
+      `);
+      return redirectHtml;
+    }
+    
     let pageTitle = 'Bar Operations';
     if (page === 'employee') pageTitle = 'Bar Employee CRM';
     if (page === 'shift') pageTitle = 'Bartending Shift Tracker';
+    
+    console.log(`[DOGET] 📝 Page title: ${pageTitle}`);
+    console.log(`[DOGET] 🔄 Creating HTML template for: ${page}`);
+    
     const html = HtmlService.createTemplateFromFile(page);
     const htmlOutput = html.evaluate()
       .setTitle(pageTitle)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    
+    console.log(`[DOGET] ✅ Successfully created HTML output for: ${page}`);
+    console.log(`[DOGET] 🔗 Web app URL structure: ${ScriptApp.getService().getUrl()}`);
     return htmlOutput;
   } catch (error) {
+    console.error(`[DOGET] ❌ Error serving HTML:`, error);
+    console.error(`[DOGET] 📝 Error stack:`, error.stack);
     Logger.log('Error serving HTML: ' + error.toString());
+    
     const errorHtml = HtmlService.createHtmlOutput(`
       <html>
         <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
           <h2>🚫 CRM System Error</h2>
           <p>There was an error loading the Bar Employee CRM.</p>
           <p><strong>Error:</strong> ${error.toString()}</p>
+          <p><strong>Timestamp:</strong> ${timestamp}</p>
+          <p><strong>Requested Page:</strong> ${e?.parameter?.page || 'landing'}</p>
           <button onclick="location.reload()">🔄 Reload Page</button>
+          <hr>
+          <p><small>Check the browser console (F12) for more details</small></p>
         </body>
       </html>
     `).setTitle('CRM Error');

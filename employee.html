@@ -566,6 +566,14 @@
         <div class="header">
             <h1>🍺 Bar Employee CRM</h1>
             <div class="header-info">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-info btn-sm" onclick="navigateToPage('landing')" title="Back to Dashboard">
+                        🏠 Dashboard
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="navigateToPage('shift')" title="Shift Tracker">
+                        ⏰ Shifts
+                    </button>
+                </div>
                 <div class="sync-status" id="syncStatus">
                     <span class="sync-dot">🟢</span>
                     <span>Connected</span>
@@ -782,80 +790,119 @@
             'Assistant Manager': '🎖️'
         };
 
-        // Debug helper
-        function debugLog() {
-            try {
-                const args = Array.prototype.slice.call(arguments);
-                args.unshift('[Employee]', new Date().toISOString());
-                console.log.apply(console, args);
-            } catch (e) {
-                // no-op
-            }
-        }
-
         // Initialize when the page loads
         window.onload = function() {
-            debugLog('Page onload start');
-            // Load system info and check connection
-            loadSystemInfo();
+            console.log('🚀 [INIT] =================================');
+            console.log('🚀 [INIT] Bar Employee CRM - Page Loading');
+            console.log('🚀 [INIT] =================================');
+            console.log('[INIT] ⏰ Load started at:', new Date().toISOString());
+            console.log('[INIT] 📍 Page URL:', window.location.href);
+            console.log('[INIT] 🌐 Referrer:', document.referrer || 'Direct access');
+            console.log('[INIT] 📱 Viewport:', window.innerWidth + 'x' + window.innerHeight);
+            console.log('[INIT] 🔧 Google Apps Script available:', typeof google !== 'undefined' && typeof google.script !== 'undefined');
             
-            // Load positions from server
-            loadPositionsFromServer();
+            // Check if essential DOM elements exist
+            const essentialElements = ['tableContainer', 'employeeModal', 'statusMessage'];
+            console.log('[INIT] 🏗️ Checking essential DOM elements...');
+            essentialElements.forEach(id => {
+                const element = document.getElementById(id);
+                console.log(`[INIT] 📋 Element '${id}':`, element ? '✅ Found' : '❌ Missing');
+            });
             
-            // Load employee data
-            debugLog('Calling loadEmployees');
-            loadEmployees();
+            // Check if CSS is loaded
+            const bodyStyles = getComputedStyle(document.body);
+            console.log('[INIT] 🎨 CSS loaded:', bodyStyles.fontFamily !== 'Times' ? '✅ Yes' : '❌ Possibly not');
             
-            // Load "me" employee ID
-            debugLog('Calling loadMeEmployeeId');
-            loadMeEmployeeId();
+            try {
+                console.log('[INIT] 🔄 Starting initialization sequence...');
+                
+                // Load system info and check connection
+                console.log('[INIT] 📡 1/5 Loading system info...');
+                loadSystemInfo();
+                
+                // Load positions from server
+                console.log('[INIT] 🏢 2/5 Loading positions...');
+                loadPositionsFromServer();
+                
+                // Load employee data
+                console.log('[INIT] 👥 3/5 Loading employees...');
+                loadEmployees();
+                
+                // Load "me" employee ID
+                console.log('[INIT] 👤 4/5 Loading user identity...');
+                loadMeEmployeeId();
 
-            // Photo preview handler
-            const fileInput = document.getElementById('photoFile');
-            if (fileInput) {
-                fileInput.addEventListener('change', function() {
-                    const file = this.files && this.files[0];
-                    const preview = document.getElementById('photoPreview');
-                    const previewContainer = document.getElementById('photoPreviewContainer');
-                    if (file && preview && previewContainer) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.src = e.target.result;
-                            previewContainer.style.display = 'block';
-                        };
-                        reader.readAsDataURL(file);
-                    } else if (previewContainer) {
-                        previewContainer.style.display = 'none';
-                    }
-                });
-            } else {
-                debugLog('photoFile input not found');
+                // Photo preview handler
+                console.log('[INIT] 📸 5/5 Setting up photo handler...');
+                const fileInput = document.getElementById('photoFile');
+                if (fileInput) {
+                    console.log('[INIT] 📸 Photo input found, adding event listener');
+                    fileInput.addEventListener('change', function() {
+                        console.log('[PHOTO] 📷 File selected:', this.files?.[0]?.name || 'None');
+                        const file = this.files && this.files[0];
+                        const preview = document.getElementById('photoPreview');
+                        const previewContainer = document.getElementById('photoPreviewContainer');
+                        if (file && preview && previewContainer) {
+                            console.log('[PHOTO] 📷 Reading file for preview...');
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                console.log('[PHOTO] ✅ Photo preview loaded');
+                                preview.src = e.target.result;
+                                previewContainer.style.display = 'block';
+                            };
+                            reader.readAsDataURL(file);
+                        } else if (previewContainer) {
+                            previewContainer.style.display = 'none';
+                        }
+                    });
+                } else {
+                    console.log('[INIT] ⚠️ Photo input element not found');
+                }
+                
+                // Build skills UI
+                console.log('[INIT] 🎯 Building skills UI...');
+                buildSkillsUI();
+                
+                console.log('[INIT] ✅ Initialization sequence completed');
+                
+            } catch (error) {
+                console.error('[INIT] 🚨 Critical error during initialization:', error);
+                console.error('[INIT] 📝 Error stack:', error.stack);
             }
-            // Build skills UI
-            debugLog('Building skills UI');
-            buildSkillsUI();
-            debugLog('Page onload end');
         };
 
         // Load system information and test connection
         function loadSystemInfo() {
+            console.log('[SYSTEM] 🔄 Starting system info load...');
+            console.log('[SYSTEM] 📍 Current URL:', window.location.href);
+            console.log('[SYSTEM] 🌐 User Agent:', navigator.userAgent);
+            console.log('[SYSTEM] 📱 Screen:', screen.width + 'x' + screen.height);
+            
             updateSyncStatus('Connecting...', false);
-            debugLog('loadSystemInfo called');
             
             google.script.run
                 .withSuccessHandler(function(result) {
+                    console.log('[SYSTEM] ✅ System info response received:', result);
                     if (result && result.success) {
                         systemInfo = result.info;
                         updateSyncStatus('Connected to Google Sheets', true);
-                        debugLog('System info loaded', systemInfo);
+                        console.log('[SYSTEM] 📊 System info loaded successfully:', systemInfo);
+                        console.log('[SYSTEM] 📋 Spreadsheet ID:', systemInfo?.spreadsheetId || 'N/A');
+                        console.log('[SYSTEM] 🔗 Sheet URL:', systemInfo?.sheetUrl || 'N/A');
                     } else {
                         updateSyncStatus('Connection failed', false);
-                        console.error('[Employee]', new Date().toISOString(), 'Failed to load system info:', result && result.error);
+                        console.error('[SYSTEM] ❌ Failed to load system info:', result?.error || 'Unknown error');
+                        console.error('[SYSTEM] 📝 Full result object:', result);
                     }
                 })
                 .withFailureHandler(function(error) {
                     updateSyncStatus('Connection error', false);
-                    console.error('[Employee]', new Date().toISOString(), 'System info error:', error);
+                    console.error('[SYSTEM] 🚨 System info error:', error);
+                    console.error('[SYSTEM] 📝 Error details:', {
+                        message: error.message,
+                        stack: error.stack,
+                        name: error.name
+                    });
                     showStatus('Connection to Google Sheets failed: ' + error.message, 'error');
                 })
                 .getSystemInfo();
@@ -863,48 +910,64 @@
 
         // Load "me" employee ID
         function loadMeEmployeeId() {
-            debugLog('loadMeEmployeeId called');
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result && result.success) {
                         meEmpId = result.empId || '';
-                        debugLog('Me employee ID', meEmpId);
+                        console.log('Me employee ID:', meEmpId);
                         renderTable(); // Refresh to show crown icon
                     }
                 })
                 .withFailureHandler(function(error) {
-                    console.log('[Employee]', new Date().toISOString(), 'Could not load me employee ID:', error);
+                    console.log('Could not load me employee ID:', error);
                 })
                 .getMeEmployeeId();
         }
 
         // Load employees from Google Sheets
         function loadEmployees() {
+            console.log('[EMPLOYEES] 🔄 Starting employee data load...');
+            console.log('[EMPLOYEES] ⏰ Load timestamp:', new Date().toISOString());
+            
             showStatus('Loading employees from Google Sheets...', 'success');
-            debugLog('loadEmployees called');
             document.body.classList.add('loading');
             updateSyncStatus('Loading...', false);
             
             google.script.run
                 .withSuccessHandler(function(result) {
+                    console.log('[EMPLOYEES] ✅ Employee data response received:', result);
                     document.body.classList.remove('loading');
                     
                     if (result && result.success) {
                         employees = result.employees || [];
-                        debugLog('Loaded employees', employees.length);
+                        console.log('[EMPLOYEES] 📊 Loaded employees count:', employees.length);
+                        console.log('[EMPLOYEES] 👥 Employee data sample:', employees.slice(0, 2));
+                        console.log('[EMPLOYEES] 🏢 Positions found:', [...new Set(employees.map(e => e.position))]);
+                        console.log('[EMPLOYEES] 📈 Status distribution:', employees.reduce((acc, e) => {
+                            acc[e.status] = (acc[e.status] || 0) + 1;
+                            return acc;
+                        }, {}));
+                        
                         filterEmployees();
                         showStatus(`Loaded ${employees.length} employees from Google Sheets`, 'success');
                         updateSyncStatus('Connected', true);
                     } else {
-                        console.error('[Employee]', new Date().toISOString(), 'Failed to load employees:', result && result.error);
-                        showStatus('Error loading employees: ' + (result.error || 'Unknown error'), 'error');
+                        console.error('[EMPLOYEES] ❌ Failed to load employees:', result?.error || 'Unknown error');
+                        console.error('[EMPLOYEES] 📝 Full result object:', result);
+                        showStatus('Error loading employees: ' + (result?.error || 'Unknown error'), 'error');
                         showEmptyState('Error loading data from Google Sheets');
                         updateSyncStatus('Load failed', false);
                     }
                 })
                 .withFailureHandler(function(error) {
                     document.body.classList.remove('loading');
-                    console.error('[Employee]', new Date().toISOString(), 'Error loading employees:', error);
+                    console.error('[EMPLOYEES] 🚨 Error loading employees:', error);
+                    console.error('[EMPLOYEES] 📝 Error details:', {
+                        message: error.message,
+                        stack: error.stack,
+                        name: error.name,
+                        timestamp: new Date().toISOString()
+                    });
                     showStatus('Failed to connect to Google Sheets: ' + error.message, 'error');
                     showEmptyState('Failed to connect to Google Sheets');
                     updateSyncStatus('Connection failed', false);
@@ -1269,27 +1332,63 @@
 
         // Table management functions
         function filterEmployees() {
-            const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+            console.log('[FILTER] 🔍 Starting employee filtering...');
             
-            if (searchTerm) {
-                filteredEmployees = employees.filter(emp => {
-                    return Object.values(emp).some(value => 
-                        value && value.toString().toLowerCase().includes(searchTerm)
-                    );
-                });
-            } else {
-                filteredEmployees = [...employees];
+            const searchInput = document.getElementById('globalSearch');
+            if (!searchInput) {
+                console.error('[FILTER] ❌ Global search input not found!');
+                return;
             }
+            
+            const searchTerm = searchInput.value.toLowerCase();
+            console.log('[FILTER] 🔎 Search term:', searchTerm || '(empty)');
+            console.log('[FILTER] 👥 Total employees to filter:', employees ? employees.length : 'undefined');
+            
+            if (!Array.isArray(employees)) {
+                console.error('[FILTER] ❌ Employees is not an array:', employees);
+                filteredEmployees = [];
+                renderTable();
+                return;
+            }
+            
+            try {
+                if (searchTerm) {
+                    filteredEmployees = employees.filter(emp => {
+                        return Object.values(emp).some(value => 
+                            value && value.toString().toLowerCase().includes(searchTerm)
+                        );
+                    });
+                    console.log('[FILTER] 📊 Filtered results:', filteredEmployees.length);
+                } else {
+                    filteredEmployees = [...employees];
+                    console.log('[FILTER] 📊 No filter applied, showing all:', filteredEmployees.length);
+                }
 
-            if (activeRowIndex >= filteredEmployees.length) {
-                activeRowIndex = -1;
+                if (activeRowIndex >= filteredEmployees.length) {
+                    activeRowIndex = -1;
+                    console.log('[FILTER] 📍 Reset active row index');
+                }
+                
+                console.log('[FILTER] ✅ Filtering completed, rendering table...');
+                renderTable();
+            } catch (error) {
+                console.error('[FILTER] 🚨 Error during filtering:', error);
+                filteredEmployees = [];
+                renderTable();
             }
-            
-            renderTable();
         }
 
         function renderTable() {
+            console.log('[RENDER] 🎨 Starting table render...');
+            console.log('[RENDER] 📊 Filtered employees count:', filteredEmployees ? filteredEmployees.length : 'undefined');
+            console.log('[RENDER] 👥 Total employees count:', employees ? employees.length : 'undefined');
+            
             const container = document.getElementById('tableContainer');
+            if (!container) {
+                console.error('[RENDER] ❌ Table container not found!');
+                return;
+            }
+            console.log('[RENDER] ✅ Table container found');
             
             const table = document.createElement('table');
             table.className = 'data-table';
@@ -1601,18 +1700,11 @@
         });
 
         // Close modal when clicking outside
-        (function(){
-            var modalEl = document.getElementById('employeeFormModal');
-            if (!modalEl) {
-                console.warn('[Employee]', new Date().toISOString(), 'employeeFormModal not found');
-            } else {
-                modalEl.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeEmployeeForm();
-                    }
-                });
+        document.getElementById('employeeFormModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEmployeeForm();
             }
-        })();
+        });
 
         // Load positions from server and update form
         function loadPositionsFromServer() {
@@ -1745,6 +1837,19 @@
                     </div>
                 </div>
             `;
+        }
+
+        // Navigation function for page routing
+        function navigateToPage(page) {
+            console.log('[NAVIGATION] 🧭 Navigating from employee page to:', page);
+            console.log('[NAVIGATION] 📍 Current URL:', window.location.href);
+            
+            // Use relative URL - just change the page parameter
+            const newUrl = page === 'landing' ? '.' : '?page=' + page;
+            console.log('[NAVIGATION] 🎯 Relative URL:', newUrl);
+            
+            // Navigate using relative URL
+            window.location.href = newUrl;
         }
     </script>
 </body>
