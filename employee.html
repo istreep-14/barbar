@@ -782,8 +782,20 @@
             'Assistant Manager': '🎖️'
         };
 
+        // Debug helper
+        function debugLog() {
+            try {
+                const args = Array.prototype.slice.call(arguments);
+                args.unshift('[Employee]', new Date().toISOString());
+                console.log.apply(console, args);
+            } catch (e) {
+                // no-op
+            }
+        }
+
         // Initialize when the page loads
         window.onload = function() {
+            debugLog('Page onload start');
             // Load system info and check connection
             loadSystemInfo();
             
@@ -791,9 +803,11 @@
             loadPositionsFromServer();
             
             // Load employee data
+            debugLog('Calling loadEmployees');
             loadEmployees();
             
             // Load "me" employee ID
+            debugLog('Calling loadMeEmployeeId');
             loadMeEmployeeId();
 
             // Photo preview handler
@@ -814,29 +828,34 @@
                         previewContainer.style.display = 'none';
                     }
                 });
+            } else {
+                debugLog('photoFile input not found');
             }
             // Build skills UI
+            debugLog('Building skills UI');
             buildSkillsUI();
+            debugLog('Page onload end');
         };
 
         // Load system information and test connection
         function loadSystemInfo() {
             updateSyncStatus('Connecting...', false);
+            debugLog('loadSystemInfo called');
             
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result && result.success) {
                         systemInfo = result.info;
                         updateSyncStatus('Connected to Google Sheets', true);
-                        console.log('System info loaded:', systemInfo);
+                        debugLog('System info loaded', systemInfo);
                     } else {
                         updateSyncStatus('Connection failed', false);
-                        console.error('Failed to load system info:', result.error);
+                        console.error('[Employee]', new Date().toISOString(), 'Failed to load system info:', result && result.error);
                     }
                 })
                 .withFailureHandler(function(error) {
                     updateSyncStatus('Connection error', false);
-                    console.error('System info error:', error);
+                    console.error('[Employee]', new Date().toISOString(), 'System info error:', error);
                     showStatus('Connection to Google Sheets failed: ' + error.message, 'error');
                 })
                 .getSystemInfo();
@@ -844,16 +863,17 @@
 
         // Load "me" employee ID
         function loadMeEmployeeId() {
+            debugLog('loadMeEmployeeId called');
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result && result.success) {
                         meEmpId = result.empId || '';
-                        console.log('Me employee ID:', meEmpId);
+                        debugLog('Me employee ID', meEmpId);
                         renderTable(); // Refresh to show crown icon
                     }
                 })
                 .withFailureHandler(function(error) {
-                    console.log('Could not load me employee ID:', error);
+                    console.log('[Employee]', new Date().toISOString(), 'Could not load me employee ID:', error);
                 })
                 .getMeEmployeeId();
         }
@@ -861,6 +881,7 @@
         // Load employees from Google Sheets
         function loadEmployees() {
             showStatus('Loading employees from Google Sheets...', 'success');
+            debugLog('loadEmployees called');
             document.body.classList.add('loading');
             updateSyncStatus('Loading...', false);
             
@@ -870,12 +891,12 @@
                     
                     if (result && result.success) {
                         employees = result.employees || [];
-                        console.log('Loaded employees:', employees.length);
+                        debugLog('Loaded employees', employees.length);
                         filterEmployees();
                         showStatus(`Loaded ${employees.length} employees from Google Sheets`, 'success');
                         updateSyncStatus('Connected', true);
                     } else {
-                        console.error('Failed to load employees:', result.error);
+                        console.error('[Employee]', new Date().toISOString(), 'Failed to load employees:', result && result.error);
                         showStatus('Error loading employees: ' + (result.error || 'Unknown error'), 'error');
                         showEmptyState('Error loading data from Google Sheets');
                         updateSyncStatus('Load failed', false);
@@ -883,7 +904,7 @@
                 })
                 .withFailureHandler(function(error) {
                     document.body.classList.remove('loading');
-                    console.error('Error loading employees:', error);
+                    console.error('[Employee]', new Date().toISOString(), 'Error loading employees:', error);
                     showStatus('Failed to connect to Google Sheets: ' + error.message, 'error');
                     showEmptyState('Failed to connect to Google Sheets');
                     updateSyncStatus('Connection failed', false);
@@ -1580,11 +1601,18 @@
         });
 
         // Close modal when clicking outside
-        document.getElementById('employeeFormModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEmployeeForm();
+        (function(){
+            var modalEl = document.getElementById('employeeFormModal');
+            if (!modalEl) {
+                console.warn('[Employee]', new Date().toISOString(), 'employeeFormModal not found');
+            } else {
+                modalEl.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeEmployeeForm();
+                    }
+                });
             }
-        });
+        })();
 
         // Load positions from server and update form
         function loadPositionsFromServer() {
