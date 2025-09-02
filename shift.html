@@ -886,6 +886,17 @@
             loadCurrentUser();
             setupKeyboardNavigation();
             setupLocationAutocomplete();
+            
+            // Load navigation URLs
+            if (typeof google !== 'undefined' && google.script) {
+                console.log('[SHIFT] 🔄 Loading navigation URLs from server...');
+                google.script.run.withSuccessHandler(function(urls) {
+                    pageUrls = urls;
+                    console.log('[SHIFT] ✅ Navigation URLs loaded:', urls);
+                }).withFailureHandler(function(error) {
+                    console.error('[SHIFT] ❌ Failed to load navigation URLs:', error);
+                }).getPageUrls();
+            }
         });
 
         function showError(message) {
@@ -1309,20 +1320,6 @@
                 toggleDebug();
             }
         });
-
-        // Cache the URLs when page loads
-        let pageUrls = null;
-        
-        // Load URLs on page initialization - add to existing initialization
-        if (typeof google !== 'undefined' && google.script) {
-            console.log('[SHIFT] 🔄 Loading navigation URLs from server...');
-            google.script.run.withSuccessHandler(function(urls) {
-                pageUrls = urls;
-                console.log('[SHIFT] ✅ Navigation URLs loaded:', urls);
-            }).withFailureHandler(function(error) {
-                console.error('[SHIFT] ❌ Failed to load navigation URLs:', error);
-            }).getPageUrls();
-        }
         
         // Navigation function for page routing
         function navigateToPage(page) {
