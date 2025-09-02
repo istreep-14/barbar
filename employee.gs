@@ -74,31 +74,41 @@ function formatDateForDisplay(dateInput) {
 }
 
 /**
- * Serves the main web app HTML
+ * Serves the landing page with sidebar and routes embedded views.
+ * Usage:
+ *   - /exec                -> renders index.html (shell)
+ *   - /exec?view=employee  -> renders employee.html (embedded in iframe)
+ *   - /exec?view=shift     -> renders shift.html (embedded in iframe)
  */
 function doGet(e) {
   try {
-    const html = HtmlService.createTemplateFromFile('index');
-    const htmlOutput = html.evaluate()
-      .setTitle('Bar Employee CRM')
+    var view = (e && e.parameter && e.parameter.view) ? String(e.parameter.view) : '';
+
+    if (view === 'employee') {
+      return HtmlService.createHtmlOutputFromFile('employee')
+        .setTitle('Bar Employee CRM')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    }
+
+    if (view === 'shift') {
+      return HtmlService.createHtmlOutputFromFile('shift')
+        .setTitle('Bartending Shift Tracker')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    }
+
+    // Default: render the unified landing page shell
+    return HtmlService.createTemplateFromFile('index')
+      .evaluate()
+      .setTitle('Bar Ops Dashboard')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
-    
-    return htmlOutput;
   } catch (error) {
     Logger.log('Error serving HTML: ' + error.toString());
-    
-    const errorHtml = HtmlService.createHtmlOutput(`
-      <html>
-        <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
-          <h2>🚫 CRM System Error</h2>
-          <p>There was an error loading the Bar Employee CRM.</p>
-          <p><strong>Error:</strong> ${error.toString()}</p>
-          <button onclick="location.reload()">🔄 Reload Page</button>
-        </body>
-      </html>
-    `).setTitle('CRM Error');
-    
+
+    var errorHtml = HtmlService.createHtmlOutput('\n      <html>\n        <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">\n          <h2>🚫 App Error</h2>\n          <p>There was an error loading the application.</p>\n          <p><strong>Error:</strong> ' + error.toString() + '</p>\n          <button onclick="location.reload()">🔄 Reload Page</button>\n        </body>\n      </html>\n    ').setTitle('App Error');
+
     return errorHtml;
   }
 }

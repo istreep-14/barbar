@@ -6,15 +6,7 @@
 // Configuration
 const SHEET_NAME = 'Shifts';
 
-/**
- * Serves the HTML web app
- */
-function doGet() {
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('Bartending Shift Tracker')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
+// doGet is handled in employee.gs to unify routing across views
 
 /**
  * Gets or creates the spreadsheet for storing shift data

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Ops Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #111827;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            font-weight: 600;
+            font-size: 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            gap: 6px;
+        }
+
+        .nav-button {
+            appearance: none;
+            border: 0;
+            text-align: left;
+            background: transparent;
+            color: #e5e7eb;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-button:hover {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .content {
+            flex: 1;
+            background: #f3f4f6;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .frame-wrap {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .frame {
+            width: 100%;
+            height: calc(100vh - 49px);
+            border: 0;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-header">Bar Ops</div>
+            <nav class="nav">
+                <button id="nav-employee" class="nav-button" onclick="setView('employee')">Employees</button>
+                <button id="nav-shift" class="nav-button" onclick="setView('shift')">Shifts</button>
+            </nav>
+        </aside>
+        <main class="content">
+            <div class="topbar">
+                <div id="pageTitle">Employees</div>
+            </div>
+            <div class="frame-wrap">
+                <iframe id="contentFrame" class="frame" src=""></iframe>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function setView(view) {
+            var frame = document.getElementById('contentFrame');
+            var title = document.getElementById('pageTitle');
+            var btnEmp = document.getElementById('nav-employee');
+            var btnShift = document.getElementById('nav-shift');
+
+            // Update active state
+            btnEmp.classList.toggle('active', view === 'employee');
+            btnShift.classList.toggle('active', view === 'shift');
+            title.textContent = view === 'employee' ? 'Employees' : 'Shifts';
+
+            // Load the selected view inside the iframe
+            frame.src = '?view=' + encodeURIComponent(view);
+
+            // Update the URL hash for easy bookmarking (without reload)
+            if (history && history.replaceState) {
+                var newUrl = window.location.pathname + '#/' + view;
+                history.replaceState(null, '', newUrl);
+            } else {
+                window.location.hash = '#/' + view;
+            }
+        }
+
+        function initialView() {
+            // Prefer hash (#/employee or #/shift), otherwise default to employee
+            var hash = (window.location.hash || '').replace(/^#\/?/, '');
+            if (hash === 'shift') return 'shift';
+            return 'employee';
+        }
+
+        // Initialize on load
+        (function() {
+            setView(initialView());
+        })();
+    </script>
+</body>
+</html>
+
