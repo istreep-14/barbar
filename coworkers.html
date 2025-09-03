@@ -1034,7 +1034,7 @@
                 google.script.run
                     .withSuccessHandler(function() {
                         showSuccess('Coworkers saved successfully');
-                        setTimeout(goBack, 1500);
+                        setTimeout(goBack, 1000);
                     })
                     .withFailureHandler(function(error) {
                         showError('Error saving coworkers: ' + error);
@@ -1043,13 +1043,15 @@
             } else {
                 showSuccess('Coworkers saved successfully');
                 console.log('Saving coworkers:', coworkersData);
-                setTimeout(goBack, 1500);
+                setTimeout(goBack, 1000);
             }
         }
 
         function goBack() {
             // Navigate to shift page
             navigateToShiftPage();
+            // Also close popup window if opened in new window
+            try { if (window.opener) window.close(); } catch (e) {}
         }
         
         function navigateToShiftPage() {
