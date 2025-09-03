@@ -1870,7 +1870,11 @@ function getFunctionCatalog() {
     { name: 'repairSheet', description: 'Repairs headers/validation on CRM sheet' },
     { name: 'exportBackup', description: 'Returns exportable JSON of key data' },
     { name: 'getNavigationUrl', description: 'Generates proper navigation URLs' },
-    { name: 'getPageUrls', description: 'Returns all page URLs for navigation' }
+    { name: 'getPageUrls', description: 'Returns all page URLs for navigation' },
+    { name: 'getLocationsList', description: 'Returns locations list' },
+    { name: 'saveLocationsList', description: 'Saves locations list' },
+    { name: 'getBootstrapData', description: 'Returns cached bootstrap data (employees, positions, locations, urls, currentUser)' },
+    { name: 'getShiftsPage', description: 'Returns paginated shifts list' }
   ];
 }
 
@@ -1957,6 +1961,36 @@ function getLocationsList() {
   } catch (error) {
     Logger.log('Error getting locations: ' + error.toString());
     return [];
+  }
+}
+
+/**
+ * Save locations list (one column, single sheet) similar to positions
+ * @param {Array<string>} locations
+ */
+function saveLocationsList(locations) {
+  try {
+    if (!Array.isArray(locations)) {
+      throw new Error('Locations must be an array of strings');
+    }
+    const sheet = getLocationsSheet();
+    // Clear existing rows below header
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      const clearRange = sheet.getRange(2, 1, lastRow - 1, 1);
+      clearRange.clear();
+    }
+    // Normalize and filter
+    const cleaned = locations
+      .map(function(loc){ return (loc || '').toString().trim(); })
+      .filter(function(loc){ return loc.length > 0; });
+    if (cleaned.length > 0) {
+      const values = cleaned.map(function(loc){ return [loc]; });
+      sheet.getRange(2, 1, values.length, 1).setValues(values);
+    }
+    return { success: true, message: 'Locations saved', count: cleaned.length };
+  } catch (error) {
+    return { success: false, error: error.toString() };
   }
 }
 
