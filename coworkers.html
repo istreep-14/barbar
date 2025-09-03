@@ -733,7 +733,7 @@
                     </div>
                 </td>
                 <td>
-                    <select id="${positionId}" data-field="position" class="shift-info-value">
+                    <select id="${positionId}" data-field="position" class="shift-info-value" disabled>
                         <option value="">Select position</option>
                     </select>
                 </td>
@@ -757,6 +757,32 @@
             // Setup name autocomplete and position select
             setupEmployeeAutocomplete(row.querySelector(`#${nameId}`), row);
             setupLocationAutocomplete(row.querySelector(`#${locationId}`), row.querySelector(`#${locationId}`).nextElementSibling);
+
+            // If coworker provided and matches a known employee, pre-enable/select positions
+            try {
+                if (coworker && coworker.name) {
+                    const emp = employees.find(e => `${e.firstName} ${e.lastName}`.trim() === String(coworker.name).trim());
+                    const positionSelect = row.querySelector(`#${positionId}`);
+                    if (emp && positionSelect) {
+                        const positionsForEmp = (emp.position || '').split(',').map(p => p.trim()).filter(Boolean);
+                        const globalPositions = Array.isArray(positions) ? positions.map(p => (typeof p === 'string' ? p : p.name)).filter(Boolean) : [];
+                        const uniqueSet = new Set([''].concat(positionsForEmp, globalPositions));
+                        positionSelect.innerHTML = '';
+                        uniqueSet.forEach(function(name){
+                            const opt = document.createElement('option');
+                            opt.value = name;
+                            opt.textContent = name || 'Select position';
+                            positionSelect.appendChild(opt);
+                        });
+                        positionSelect.disabled = false;
+                        if (coworker.position && uniqueSet.has(coworker.position)) {
+                            positionSelect.value = coworker.position;
+                        } else {
+                            positionSelect.value = positionsForEmp[0] || '';
+                        }
+                    }
+                }
+            } catch (e) { /* ignore */ }
         }
 
         function deleteCoworkerRow(btn) {
@@ -813,6 +839,7 @@
                                 opt.textContent = name || 'Select position';
                                 positionSelect.appendChild(opt);
                             });
+                            positionSelect.disabled = false;
                             // Select the first employee position if available; otherwise keep previous
                             positionSelect.value = positionsForEmp[0] || previous || '';
                         }
@@ -858,12 +885,22 @@
                                     opt.textContent = name || 'Select position';
                                     positionSelect.appendChild(opt);
                                 });
+                                positionSelect.disabled = false;
                                 positionSelect.value = positionsForEmp[0] || prev || '';
                             }
                         }
                     } else if (!value) {
                         this.style.borderColor = '';
                         this.setAttribute('data-valid', '');
+                        const positionSelect = row.querySelector('select[data-field="position"]');
+                        if (positionSelect) {
+                            positionSelect.disabled = true;
+                            positionSelect.innerHTML = '';
+                            const opt = document.createElement('option');
+                            opt.value = '';
+                            opt.textContent = 'Select position';
+                            positionSelect.appendChild(opt);
+                        }
                     }
                 }, 200);
             });
@@ -872,6 +909,16 @@
             input.addEventListener('input', function() {
                 this.setAttribute('data-valid', '');
                 this.style.borderColor = '';
+                // Disable and clear position select until a valid employee is chosen
+                const positionSelect = row.querySelector('select[data-field="position"]');
+                if (positionSelect) {
+                    positionSelect.disabled = true;
+                    positionSelect.innerHTML = '';
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'Select position';
+                    positionSelect.appendChild(opt);
+                }
             });
         }
 
