@@ -733,10 +733,9 @@
                     </div>
                 </td>
                 <td>
-                    <div class="autocomplete-wrapper">
-                        <input type="text" id="${positionId}" value="${coworker?.position || ''}" data-field="position" placeholder="Position">
-                        <div class="autocomplete-dropdown"></div>
-                    </div>
+                    <select id="${positionId}" data-field="position" class="shift-info-value">
+                        <option value="">Select position</option>
+                    </select>
                 </td>
                 <td>
                     <input type="time" value="${coworker?.startTime || shiftData?.startTime || ''}" data-field="startTime">
@@ -755,9 +754,8 @@
                 </td>
             `;
             
-            // Setup autocompletes
+            // Setup name autocomplete and position select
             setupEmployeeAutocomplete(row.querySelector(`#${nameId}`), row);
-            setupPositionAutocomplete(row.querySelector(`#${positionId}`), row);
             setupLocationAutocomplete(row.querySelector(`#${locationId}`), row.querySelector(`#${locationId}`).nextElementSibling);
         }
 
@@ -780,8 +778,10 @@
                 }
                 
                 const matches = employees.filter(emp => {
-                    const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
-                    return fullName.includes(value);
+                    const first = (emp.firstName || '').toLowerCase();
+                    const last = (emp.lastName || '').toLowerCase();
+                    // Prioritize first-name match; still allow full-name fallback
+                    return first.includes(value) || `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(value);
                 });
                 
                 if (matches.length === 0) {
@@ -798,12 +798,23 @@
                         input.value = `${emp.firstName} ${emp.lastName}`;
                         input.setAttribute('data-valid', 'true');
                         input.setAttribute('data-employee-id', emp.empId || '');
-                        // Auto-fill position
-                        const positionInput = row.querySelector('input[data-field="position"]');
-                        if (positionInput && emp.position) {
-                            // If employee has multiple positions, use the first one
-                            const positions = emp.position.split(',').map(p => p.trim());
-                            positionInput.value = positions[0] || emp.position;
+                        // Populate position dropdown based on employee positions
+                        const positionSelect = row.querySelector('select[data-field="position"]');
+                        if (positionSelect) {
+                            const positionsForEmp = (emp.position || '').split(',').map(p => p.trim()).filter(Boolean);
+                            // Build options: employee-specific first, then global positions
+                            const globalPositions = Array.isArray(positions) ? positions.map(p => (typeof p === 'string' ? p : p.name)).filter(Boolean) : [];
+                            const uniqueSet = new Set([''].concat(positionsForEmp, globalPositions));
+                            const previous = positionSelect.value;
+                            positionSelect.innerHTML = '';
+                            uniqueSet.forEach(function(name){
+                                const opt = document.createElement('option');
+                                opt.value = name;
+                                opt.textContent = name || 'Select position';
+                                positionSelect.appendChild(opt);
+                            });
+                            // Select the first employee position if available; otherwise keep previous
+                            positionSelect.value = positionsForEmp[0] || previous || '';
                         }
                         dropdown.classList.remove('active');
                     });
@@ -819,9 +830,11 @@
                     const value = this.value.trim();
                     if (value && this.getAttribute('data-valid') !== 'true') {
                         // Check if the entered name matches any employee
-                        const employee = employees.find(emp => 
-                            `${emp.firstName} ${emp.lastName}`.trim().toLowerCase() === value.toLowerCase()
-                        );
+                        const employee = employees.find(emp => {
+                            const full = `${emp.firstName} ${emp.lastName}`.trim().toLowerCase();
+                            const first = (emp.firstName || '').toLowerCase();
+                            return full === value.toLowerCase() || first === value.toLowerCase();
+                        });
                         
                         if (!employee) {
                             this.style.borderColor = 'var(--red-500)';
@@ -831,6 +844,22 @@
                             this.setAttribute('data-valid', 'true');
                             this.setAttribute('data-employee-id', employee.empId || '');
                             this.style.borderColor = '';
+                            // Ensure positions list is populated on blur selection too
+                            const positionSelect = row.querySelector('select[data-field="position"]');
+                            if (positionSelect) {
+                                const positionsForEmp = (employee.position || '').split(',').map(p => p.trim()).filter(Boolean);
+                                const globalPositions = Array.isArray(positions) ? positions.map(p => (typeof p === 'string' ? p : p.name)).filter(Boolean) : [];
+                                const uniqueSet = new Set([''].concat(positionsForEmp, globalPositions));
+                                const prev = positionSelect.value;
+                                positionSelect.innerHTML = '';
+                                uniqueSet.forEach(function(name){
+                                    const opt = document.createElement('option');
+                                    opt.value = name;
+                                    opt.textContent = name || 'Select position';
+                                    positionSelect.appendChild(opt);
+                                });
+                                positionSelect.value = positionsForEmp[0] || prev || '';
+                            }
                         }
                     } else if (!value) {
                         this.style.borderColor = '';
@@ -1021,7 +1050,7 @@
                 if (name) {
                     coworkersData.push({
                         name: name,
-                        position: row.querySelector('input[data-field="position"]').value,
+                        position: row.querySelector('select[data-field="position"]').value,
                         startTime: row.querySelector('input[data-field="startTime"]').value,
                         endTime: row.querySelector('input[data-field="endTime"]').value,
                         location: row.querySelector('input[data-field="location"]').value,
