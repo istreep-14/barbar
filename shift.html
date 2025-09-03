@@ -743,6 +743,9 @@
                     <tbody id="shiftsTableBody">
                     </tbody>
                 </table>
+                <div id="loadMoreContainer" style="display: none; padding: 1rem; text-align: center;">
+                    <button class="btn" onclick="loadMoreShifts()" style="background: var(--gray-50); color: var(--gray-800); border-color: var(--gray-300);">Load more</button>
+                </div>
             </div>
 
             <div class="empty-state" id="emptyState" style="display: none;">
@@ -853,9 +856,14 @@
         let locations = [];
         let currentUser = null;
         let pageUrls = null;
+        let debugEnabled = false;
+        let shiftsLimit = 50;
+        let shiftsOffset = 0;
+        let shiftsHasMore = false;
 
         // Debug logging function - must be defined before use
         function debugLog(message) {
+            if (!debugEnabled) return;
             const timestamp = new Date().toISOString();
             console.log('[SHIFT-DEBUG] 🔍 ' + timestamp + ': ' + message);
             const debugContent = document.getElementById('debugContent');
@@ -890,9 +898,39 @@
             
             debugLog('App initialized. Google Apps Script available: ' + isGoogleAppsScript);
             console.log('[SHIFT-INIT] 📊 Loading shifts data...');
+            // Try bootstrap from cache first
+            try {
+                const cachedBootstrap = sessionStorage.getItem('bootstrapData');
+                if (cachedBootstrap) {
+                    const b = JSON.parse(cachedBootstrap);
+                    if (b && b.dataVersion) {
+                        pageUrls = b.pageUrls || pageUrls;
+                        locations = Array.isArray(b.locations) ? b.locations : locations;
+                        currentUser = b.currentUser || currentUser;
+                        debugLog('Loaded bootstrap from cache version ' + b.dataVersion);
+                    }
+                }
+            } catch (e) { /* ignore cache parse errors */ }
+
+            // Fetch fresh bootstrap in background
+            if (isGoogleAppsScript) {
+                try {
+                    google.script.run
+                        .withSuccessHandler(function(resp) {
+                            if (resp && resp.success) {
+                                pageUrls = resp.pageUrls || pageUrls;
+                                locations = Array.isArray(resp.locations) ? resp.locations : locations;
+                                currentUser = resp.currentUser || currentUser;
+                                try { sessionStorage.setItem('bootstrapData', JSON.stringify(resp)); } catch (e) {}
+                                debugLog('Bootstrap refreshed from server v' + resp.dataVersion);
+                            }
+                        })
+                        .withFailureHandler(function(err) { console.error('[SHIFT] Bootstrap error:', err); })
+                        .getBootstrapData();
+                } catch (e) { /* ignore */ }
+            }
+
             loadShifts();
-            loadLocations();
-            loadCurrentUser();
             setupKeyboardNavigation();
             setupLocationAutocomplete();
             
@@ -901,9 +939,9 @@
                 console.log('[SHIFT] 🔄 Loading navigation URLs from server...');
                 google.script.run.withSuccessHandler(function(urls) {
                     pageUrls = urls;
-                    console.log('[SHIFT] ✅ Navigation URLs loaded:', urls);
+                    console.log('[NAVIGATION] ✅ Navigation URLs loaded:', urls);
                 }).withFailureHandler(function(error) {
-                    console.error('[SHIFT] ❌ Failed to load navigation URLs:', error);
+                    console.error('[NAVIGATION] ❌ Failed to load navigation URLs:', error);
                 }).getPageUrls();
             }
         });
@@ -937,36 +975,34 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('tableContainer').style.display = 'none';
             document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('loadMoreContainer').style.display = 'none'; // Hide load more button on initial load
 
             debugLog('Starting loadShifts()');
             
             try {
                 if (isGoogleAppsScript) {
-                    console.log('[SHIFT-LOAD] 📡 Calling getAllShifts via Google Apps Script...');
-                    debugLog('Calling getAllShifts via Google Apps Script');
+                    console.log('[SHIFT-LOAD] 📡 Calling getShiftsPage via Google Apps Script...');
+                    debugLog('Calling getShiftsPage via Google Apps Script');
                     google.script.run
-                        .withSuccessHandler(function(data) {
-                            console.log('[SHIFT-LOAD] ✅ getAllShifts success response:', data);
-                            console.log('[SHIFT-LOAD] 📊 Shifts count:', Array.isArray(data) ? data.length : 'Not an array');
-                            if (Array.isArray(data) && data.length > 0) {
-                                console.log('[SHIFT-LOAD] 📋 Sample shift data:', data[0]);
-                                console.log('[SHIFT-LOAD] 💰 Total tips:', data.reduce((sum, shift) => sum + (shift.tips || 0), 0));
-                                console.log('[SHIFT-LOAD] ⏱️ Total hours:', data.reduce((sum, shift) => sum + (shift.hours || 0), 0));
+                        .withSuccessHandler(function(resp) {
+                            try {
+                                if (resp && resp.success) {
+                                    shiftsHasMore = !!resp.hasMore;
+                                    shiftsLimit = resp.limit || shiftsLimit;
+                                    shiftsOffset = resp.offset || 0;
+                                    onShiftsLoaded(resp.items || []);
+                                } else {
+                                    onError(resp || { message: 'Unknown response' });
+                                }
+                            } catch (e) {
+                                onError(e);
                             }
-                            debugLog('getAllShifts success: ' + JSON.stringify(data));
-                            onShiftsLoaded(data);
                         })
                         .withFailureHandler(function(error) {
-                            console.error('[SHIFT-LOAD] ❌ getAllShifts error:', error);
-                            console.error('[SHIFT-LOAD] 📝 Error details:', {
-                                message: error.message,
-                                stack: error.stack,
-                                name: error.name
-                            });
-                            debugLog('getAllShifts error: ' + JSON.stringify(error));
+                            console.error('[SHIFT-LOAD] ❌ getShiftsPage error:', error);
                             onError(error);
                         })
-                        .getAllShifts();
+                        .getShiftsPage({ limit: shiftsLimit, offset: 0 });
                 } else {
                     console.log('[SHIFT-LOAD] ⚠️ Google Apps Script not available, using mock data');
                     debugLog('Google Apps Script not available, using mock data');
@@ -997,7 +1033,7 @@
             }
         }
 
-        function onShiftsLoaded(data) {
+        function onShiftsLoaded(data, { append } = { append: false }) {
             debugLog('onShiftsLoaded called with data type: ' + typeof data);
             debugLog('Data is array: ' + Array.isArray(data));
             debugLog('Data length: ' + (data ? data.length : 'null/undefined'));
@@ -1008,7 +1044,11 @@
                 data = data ? [data] : [];
             }
             
-            shifts = data;
+            if (append) {
+                shifts = shifts.concat(data);
+            } else {
+                shifts = data;
+            }
             debugLog('Processed shifts array length: ' + shifts.length);
             
             document.getElementById('loading').style.display = 'none';
@@ -1024,6 +1064,12 @@
                 renderShiftsTable();
             }
             
+            // Toggle Load More
+            const loadMore = document.getElementById('loadMoreContainer');
+            if (loadMore) {
+                loadMore.style.display = shiftsHasMore ? 'block' : 'none';
+            }
+
             updateStats();
         }
 
@@ -1164,6 +1210,16 @@
             debugLog('Saving shift: ' + JSON.stringify(shiftData));
 
             try {
+                // Optimistic UI update
+                const existingIndex = shifts.findIndex(s => s.id === shiftData.id);
+                if (existingIndex >= 0) {
+                    shifts[existingIndex] = Object.assign({}, shifts[existingIndex], shiftData);
+                } else {
+                    shifts.unshift(Object.assign({}, shiftData));
+                }
+                renderShiftsTable();
+                updateStats();
+
                 if (isGoogleAppsScript) {
                     const operation = editingShiftId ? 'updateShift' : 'addShift';
                     debugLog('Calling ' + operation + ' via Google Apps Script');
@@ -1774,6 +1830,24 @@
             originalRenderShiftsTable();
             renderShiftsTableWithSelection();
         };
+
+        function loadMoreShifts() {
+            if (!isGoogleAppsScript || !shiftsHasMore) return;
+            document.getElementById('loading').style.display = 'block';
+            google.script.run
+                .withSuccessHandler(function(resp) {
+                    if (resp && resp.success) {
+                        shiftsHasMore = !!resp.hasMore;
+                        shiftsLimit = resp.limit || shiftsLimit;
+                        shiftsOffset = resp.offset || shiftsOffset;
+                        onShiftsLoaded(resp.items || [], { append: true });
+                    } else {
+                        onError(resp || { message: 'Unknown response' });
+                    }
+                })
+                .withFailureHandler(onError)
+                .getShiftsPage({ limit: shiftsLimit, offset: shifts.length });
+        }
     </script>
 </body>
 </html>

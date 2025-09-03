@@ -418,6 +418,44 @@
         document.addEventListener('DOMContentLoaded', function() {
             isGoogleAppsScript = (typeof google !== 'undefined' && google.script && google.script.run);
             
+            // Hydrate from bootstrap cache if present
+            try {
+                const cachedBootstrap = sessionStorage.getItem('bootstrapData');
+                if (cachedBootstrap) {
+                    const b = JSON.parse(cachedBootstrap);
+                    if (b && b.dataVersion) {
+                        pageUrls = b.pageUrls || pageUrls;
+                        locations = Array.isArray(b.locations) ? b.locations : locations;
+                        currentUser = b.currentUser || currentUser;
+                        if (Array.isArray(b.employees)) {
+                            employees = b.employees;
+                        }
+                        if (Array.isArray(b.positions)) {
+                            positions = b.positions;
+                        }
+                    }
+                }
+            } catch (e) { /* ignore */ }
+
+            // Refresh bootstrap in background
+            if (isGoogleAppsScript) {
+                try {
+                    google.script.run
+                        .withSuccessHandler(function(resp) {
+                            if (resp && resp.success) {
+                                pageUrls = resp.pageUrls || pageUrls;
+                                locations = Array.isArray(resp.locations) ? resp.locations : locations;
+                                currentUser = resp.currentUser || currentUser;
+                                if (Array.isArray(resp.employees)) { employees = resp.employees; }
+                                if (Array.isArray(resp.positions)) { positions = resp.positions; }
+                                try { sessionStorage.setItem('bootstrapData', JSON.stringify(resp)); } catch (e) {}
+                            }
+                        })
+                        .withFailureHandler(function(err){ console.error('Bootstrap refresh failed', err); })
+                        .getBootstrapData();
+                } catch (e) { /* ignore */ }
+            }
+
             // Listen for messages from parent window
             window.addEventListener('message', function(event) {
                 if (event.data && event.data.type === 'shiftData') {
@@ -442,9 +480,10 @@
                 }
             }
             
-            loadEmployees();
-            loadPositions();
-            loadLocations();
+            // Fallback loaders (only if not hydrated)
+            if (!Array.isArray(employees) || employees.length === 0) loadEmployees();
+            if (!Array.isArray(positions) || positions.length === 0) loadPositions();
+            if (!Array.isArray(locations) || locations.length === 0) loadLocations();
             loadCurrentUser();
             
             // Load navigation URLs
@@ -481,18 +520,24 @@
         function loadShiftData(shiftId) {
             if (isGoogleAppsScript) {
                 google.script.run
-                    .withSuccessHandler(function(shifts) {
-                        const shift = shifts.find(s => s.id === shiftId);
-                        if (shift) {
-                            shiftData = shift;
-                            displayShiftInfo();
-                            loadCoworkers();
+                    .withSuccessHandler(function(resp) {
+                        try {
+                            if (resp && resp.success && Array.isArray(resp.items)) {
+                                const shift = resp.items.find(s => s.id === shiftId);
+                                if (shift) {
+                                    shiftData = shift;
+                                    displayShiftInfo();
+                                    loadCoworkers();
+                                }
+                            }
+                        } catch (e) {
+                            showError('Error handling shift response: ' + e);
                         }
                     })
                     .withFailureHandler(function(error) {
                         showError('Error loading shift: ' + error);
                     })
-                    .getAllShifts();
+                    .getShiftsPage({ limit: 100, offset: 0 });
             }
         }
 

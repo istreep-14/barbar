@@ -1962,6 +1962,126 @@ function getLocationsList() {
 
 /**
  * =============================
+ * Bootstrap + Pagination Endpoints
+ * =============================
+ */
+
+/**
+ * Returns consolidated bootstrap data with server-side caching
+ * Includes: currentUser, minimal employees, positions, locations, pageUrls, dataVersion
+ */
+function getBootstrapData() {
+  try {
+    var scriptProps = PropertiesService.getScriptProperties();
+    var version = scriptProps.getProperty('BOOTSTRAP_VERSION') || '1';
+    var cache = CacheService.getScriptCache();
+    var cacheKey = 'BOOTSTRAP_V' + version;
+    var cached = cache.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    var employeesResult = getAllEmployees();
+    var positionsResult = getPositionsList();
+    var locationsResult = getLocationsList();
+    var pageUrls = getPageUrls();
+    var me = getCurrentUser();
+
+    // Project employees to minimal shape for autocompletes
+    var minimalEmployees = [];
+    if (employeesResult && employeesResult.success && Array.isArray(employeesResult.employees)) {
+      minimalEmployees = employeesResult.employees.map(function(e) {
+        return {
+          empId: String(e.empId || ''),
+          firstName: String(e.firstName || ''),
+          lastName: String(e.lastName || ''),
+          position: String(e.position || '')
+        };
+      });
+    }
+
+    var payload = {
+      success: true,
+      dataVersion: version,
+      currentUser: me,
+      employees: minimalEmployees,
+      positions: (positionsResult && positionsResult.positions) ? positionsResult.positions : [],
+      locations: Array.isArray(locationsResult) ? locationsResult : [],
+      pageUrls: pageUrls
+    };
+
+    // Cache for 10 minutes
+    try {
+      cache.put(cacheKey, JSON.stringify(payload), 600);
+    } catch (e) {
+      // ignore cache failures
+    }
+
+    return payload;
+  } catch (error) {
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Returns a paginated list of shifts for list view
+ * @param {Object} params - { limit: number, offset: number, fromDate?: string, toDate?: string }
+ */
+function getShiftsPage(params) {
+  try {
+    params = params || {};
+    var limit = Math.max(1, Math.min(200, Number(params.limit) || 50));
+    var offset = Math.max(0, Number(params.offset) || 0);
+    var fromDate = params.fromDate ? String(params.fromDate) : null;
+    var toDate = params.toDate ? String(params.toDate) : null;
+
+    // For now reuse existing reader; consider indexing if this grows
+    var all = getAllShifts();
+
+    // Optional date filtering
+    if (fromDate || toDate) {
+      all = all.filter(function(s) {
+        try {
+          var d = new Date(s.date + 'T' + (s.startTime || '00:00'));
+          if (fromDate && d < new Date(fromDate + 'T00:00')) return false;
+          if (toDate && d > new Date(toDate + 'T23:59')) return false;
+          return true;
+        } catch (e) {
+          return true;
+        }
+      });
+    }
+
+    var total = all.length;
+    var pageItems = all.slice(offset, offset + limit).map(function(s) {
+      return {
+        id: s.id,
+        date: s.date,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        hours: s.hours,
+        location: s.location,
+        tips: s.tips,
+        tipsPerHour: s.tipsPerHour
+        // omit notes to reduce payload size
+      };
+    });
+
+    return {
+      success: true,
+      total: total,
+      items: pageItems,
+      limit: limit,
+      offset: offset,
+      hasMore: offset + pageItems.length < total
+    };
+  } catch (error) {
+    return { success: false, error: error.toString(), items: [], total: 0, limit: 0, offset: 0, hasMore: false };
+  }
+}
+
+/**
+ * =============================
  * Shift Coworkers Management
  * =============================
  */
