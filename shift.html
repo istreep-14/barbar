@@ -1621,13 +1621,8 @@
         }
         
         // Format date for display
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-            return date.toLocaleDateString(undefined, options);
-        }
-        
+
+
         // Open coworkers page
         function openCoworkersPage() {
             const shiftId = document.getElementById('shiftId').value;
