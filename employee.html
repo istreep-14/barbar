@@ -1222,10 +1222,8 @@
             
             if (isEditing) {
                 employees[editingIndex] = employee;
-                showStatus('Employee updated successfully', 'success');
             } else {
                 employees.push(employee);
-                showStatus('Employee added successfully', 'success');
             }
 
             // Handle "me" employee ID setting
@@ -1271,24 +1269,23 @@
                     const key = slider.getAttribute('data-skill');
                     skills[key] = parseFloat(slider.value) || 0;
                 });
-                // Save employees first, then skills
-                filterEmployees();
+                // Background save employees first, then skills
                 google.script.run
                     .withSuccessHandler(function() {
                         google.script.run
                             .withSuccessHandler(function(){
-                                closeEmployeeForm();
+                                // already closed
                             })
                             .withFailureHandler(function(){
-                                closeEmployeeForm();
+                                // already closed
                             })
                             .saveEmployeeSkills(empId, skills);
                     })
                     .withFailureHandler(function(){
                         // still attempt skills
                         google.script.run
-                            .withSuccessHandler(function(){ closeEmployeeForm(); })
-                            .withFailureHandler(function(){ closeEmployeeForm(); })
+                            .withSuccessHandler(function(){ /* no-op */ })
+                            .withFailureHandler(function(){ /* no-op */ })
                             .saveEmployeeSkills(empId, skills);
                     })
                     .saveAllEmployees(employees);
@@ -1661,6 +1658,7 @@
         function selectRow(index) {
             activeRowIndex = index;
             renderTable();
+            try { sessionStorage.setItem('employee_active_index', String(index)); } catch (e) {}
         }
 
         // Utility functions
